@@ -15,6 +15,10 @@ Project{
             'src/main.cpp',
             'src/ofApp.cpp',
             'src/ofApp.h',
+            'src/jukebox.h',
+            'src/jukebox.cpp',
+            'src/gwlistening.h',
+            'src/gwlistening.cpp'
         ]
 
         of.addons: [

@@ -55,7 +55,7 @@ void ofApp::seedCritters(){
     for(int i =0; i<bands;i++){
         spectrum[i] = 0.0f;
     }*/
-    std::pair<float,float> bassOut = listen.getOutPair('b');
+    std::pair<float,float> bassOut = listen.getOutPair('b');//returns <minBassOut,maxBassOut>
     cout<<"the pair of values are:"<<bassOut.first<<"\t:"<<bassOut.second<<"\n";
     for(int i =0;i<clouds; i++){
         int seed = ofGetElapsedTimeMicros()+i+(long)tmpPnt;
