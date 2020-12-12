@@ -12,12 +12,7 @@ void ofApp::setup(){
     ofSetVerticalSync(true);
     canvas.allocate(ofGetWidth(),ofGetHeight(),GL_RGBA);
     time0 = 0;
-//    clearTempo();
-//    setupSpectrumGraph();
     seedCritters();
-    //let's set the measurment to 70% peak
-//    tempoTolerance = maxBassOut*0.65;
-    //this is the "training" area
     midReactiveColour = ofColor(246,76,14).invert()/2;
     topReactiveColour = ofColor(14,155,246).invert()/2;
     //undercoat.a controls the fade rate of trails
@@ -34,27 +29,13 @@ void ofApp::setup(){
     //selectAndPlayTune();
 }
 
-//void ofApp::clearTraining(){
-//    maxBassIn = 0.8;
-//    minBassIn  = 0.01;
-//    maxMidLIn = 0.5;
-//    minMidLIn = 0.001;
-//    maxMidIn = 0.1;
-//    minMidIn = 0.01;
-//    maxTopIn = 0.005;
-//    minTopIn = 0.000001;
-//}
-
 void ofApp::seedCritters(){
     //I'm going to make a pointer to seed the random
     //makes it far more random each time
     //it's run with the use of the pointer value :)
     long tmp;
     long* tmpPnt = &tmp;
-    cout<<"temp point "<<(long)tmpPnt<<"\n";/*
-    for(int i =0; i<bands;i++){
-        spectrum[i] = 0.0f;
-    }*/
+    cout<<"temp point "<<(long)tmpPnt<<"\n";
     std::pair<float,float> bassOut = listen.getOutPair('b');//returns <minBassOut,maxBassOut>
     cout<<"the pair of values are:"<<bassOut.first<<"\t:"<<bassOut.second<<"\n";
     for(int i =0;i<clouds; i++){
@@ -76,28 +57,12 @@ void ofApp::seedCritters(){
     yTendency = 0;
 }
 
-//void ofApp::setupSpectrumGraph(){
-//    for(int i =0; i<bands;i++){
-//        spectrum[i] = 0.0f;
-//    }
-//    //set up variables for the spectrum graph
-//    //spectrum chart background colour is 18% grey
-//    specBg = ofColor(46);
-//    posBand = ofColor(156);
-//    negBand = ofColor(128);
-//    specBarX = 10;
-//    specBarW = ofGetWidth() - 20;
-//    specBarH = 300;
-//    specBarY = ofGetHeight();
-//    //why don't the frequency bars not spread across the screen??
-//    if(bands == 128){
-//        colCorrect = 0.85;
-//    }else if(bands == 256){
-//        colCorrect = 0.92;
-//    }//but where do these numbers come from???
-//    specBarCol = round(specBarW/(bands))+colCorrect;
-//}
-
+/*
+ * Selects a random tune from the list and removes it
+ * from the list, essentially a random play of a folder.
+ * Once it has played all of the tunes on the list it then
+ * refills the list and starts the process again
+ */
 void ofApp::selectAndPlayTune(){
     int noOfTunes = tList.size();
     //create ptr for random seed
@@ -122,150 +87,6 @@ void ofApp::selectAndPlayTune(){
     //player.setVolume(0.9);
 }
 
-//void ofApp::clearTempo(){
-
-//    tempoSampling = false;
-//    tempoCaught = false;
-//    tempoUp = false;
-//    //maybe the first 4 bass hits (incase of dbl hits)
-//    tempoCount = 0;
-//    //set the length of tempo in seconds
-//    tempo = 30.0;
-//    tempoClock = ofGetElapsedTimef();
-//}
-
-//void ofApp::updateTempo(){
-//    if(bass >= tempoTolerance && tempoSampling == false && tempoCaught == false){
-//        tempoClock = ofGetElapsedTimef();
-//        tempoSampling = true;
-//        tempoUp =true;
-//        tempoTolerance = bass;
-//        cout<<"in the first tempo sample, bass up\n";
-//    }
-//    if(!tempoCaught && tempoSampling){
-//        if(bass < tempoTolerance && tempoUp == true){
-//            tempoUp = false;
-//            tempoCount++;
-//            cout<<"bass down\n";
-//        }
-//        if(tempoCount < 4){
-
-//            if(bass >= tempoTolerance && tempoUp == false){
-//                tempoUp = true;
-//                cout<<"bass up\n";
-//            }
-//        }else{
-//            float now = ofGetElapsedTimef();
-//            tempo = now - tempoClock;
-//            if(tempo > minTempoTime){
-//            tempoCaught = true;
-//            tempoSampling = false;
-//            }else{
-//                //dbl sample time
-//                tempoCount = 0;
-//            }
-//            cout<<"length of tempo measured is: "<<tempo<<"\n";
-//        }
-//}
-//}
-
-//void ofApp::updateSpectrum(){
-//    //pointer passed by our player to real spectrum
-//    //do not release from memory!!
-//    spectrumIn = ofSoundGetSpectrum(bands);
-//    //fix positioning and bar chart when maximised
-//    specBarY = ofGetHeight()-20;
-//    specBarW = ofGetWidth()-20;
-//    specBarCol = ceil(specBarW/(bands))+colCorrect;
-//    //make the values decrease slowly until bumped back up
-//    for(int i = 0; i<bands; i++){
-//        spectrum[i] *= ofNoise(peakDropRate);
-//        spectrum[i] = max(spectrum[i], spectrumIn[i]);
-//    }
-//}
-
-//void ofApp::drawSpectrum(){
-//    //draw the spectrum chart
-//    //ofSetColor(specBg);
-//    //ofFill();
-//    //ofDrawRectangle(specBarX, specBarY, specBarW,-specBarH/2);
-//     //ofSetColor(posBand);
-//    topColour.a = 128;
-//     for(int i = 0; i < bands; i++){
-//         if(i==bandBass ||i==bandMidLow || i==bandMid || i==bandTop){
-//             ofSetColor(topColour);
-//         }else{
-//             ofSetColor(topColour);
-//         }
-//         //try to level the top freq up
-//         float compV = spectrum[i];
-//         float numerator = i;
-//         float denominator = bands/10;
-//         float multiplier = 1.1;//i/20;
-//         if(i>19){
-//             compV = ofClamp(compV*(numerator/denominator),0,2)*multiplier;
-//         }else if(i<2){
-//             compV /= 2;
-//         }
-//         //ofFill();
-//         ofSetCircleResolution(30);
-//         ofDrawCircle(specBarX+i*specBarCol,specBarY+10,compV*specBarH/2);
-//         //ofDrawRectangle(specBarX+i*specBarCol,specBarY,specBarCol-2,(-10)-compV*specBarH);
-//         //ofNoFill();
-//     }
-//}
-
-//void ofApp::updateRMS(){
-//    //produce rms type figures for each band sample
-//    bm = 0;
-//    for(int i=0; i<bassSampleSize; i++){
-//        bm += pow(spectrum[bandBass+i],2.0);
-//    }
-//    bm /= bassSampleSize;
-//    bm = sqrt(bm);
-//    mlm = 0;
-//    for(int i=0; i<midLowSampleSize; i++){
-//        mlm += pow(spectrum[bandMidLow+i],2.0);
-//    }
-//    mlm /= midLowSampleSize;
-//    mlm = sqrt(mlm);
-//    mm = 0;
-//    for(int i=0; i<midSampleSize; i++){
-//        mm += pow(spectrum[bandMid+i],2.0);
-//    }
-//    mm /= midSampleSize;
-//    mm = sqrt(mm);
-//    tm = 0;
-//    for(int i=0; i<topSampleSize; i++){
-//        tm += pow(spectrum[bandTop+i],2.0);
-//    }
-//    tm /= topSampleSize;
-//    tm = sqrt(tm);
-//    //make sure that the ranges don't get zeroed out
-//    //whilst trying to 'learn' the song's ranges
-//    if(bm != 0.0){
-//        minBassIn = min(bm,minBassIn);
-//    }
-//    maxBassIn = max(bm,maxBassIn);
-//    if(mlm != 0.0){
-//        minMidLIn = min(mlm,minMidLIn);
-//    }
-//    maxMidLIn = max(mlm,maxMidLIn);
-//    if(mm != 0.0){
-//        minMidIn = min(mm,minMidIn);
-//    }
-//    maxMidIn = max(mm,maxMidIn);
-//    if(tm != 0){
-//        minTopIn = min(tm,minTopIn);
-//    }
-//    maxTopIn = max(tm, maxTopIn);
-
-//    //map the readings to the specified ranges
-//    bass = ofMap(bm,minBassIn,maxBassIn,minBassOut,maxBassOut,true);
-//    midL = ofMap(mlm,minMidLIn,maxMidLIn,minBassOut,maxBassOut,true);
-//    mid = ofMap(mm,minMidIn,maxMidIn,minMidOut,maxMidOut, true);
-//    top = ofMap(tm,minTopIn,maxTopIn,minTopOut,maxTopOut);
-//}
 
 ofColor ofApp::updateColour(){
     //work out the colour based on top and mid ranges (red:mid blue:top)
@@ -294,13 +115,8 @@ float ofApp::calcSizeResponse(){
     std::pair<float,float> bassOutPair = listen.getOutPair('b');
     std::pair<float,float> topOutPair = listen.getOutPair('t');
     //smaller than mid if toppy, bigger if bassy
-    //float cleanMid = listen.normFromBassOut(listen.normFromMidHigh(listen.getMidHigh()));
     float cleanMid = ofMap(listen.getMidHigh(),midInPair.first,midInPair.second,bassOutPair.first,bassOutPair.second,true);
-    //with gwListener bassMid = normFromBassOut(getMidLow())*cleanMid
-    //float bassMid = listen.normFromBassOut(listen.getMidLow())*cleanMid;
-    float bassMid = (ofNormalize(listen.getMidLow(),bassOutPair.first,bassOutPair.second))*cleanMid;//(ofMap(mid,minMidIn,maxMidIn,minBassOut,maxBassOut*2,true));//-midL;
-    //with gwListener topmid = (1-normFromTopOut(getTop()))*cleanMid
-    //float topMid = (1-listen.normFromTopOut(listen.getTop()))*cleanMid;
+    float bassMid = (ofNormalize(listen.getMidLow(),bassOutPair.first,bassOutPair.second))*cleanMid;
     float topMid = (1-(ofNormalize(listen.getTop(),topOutPair.first,topOutPair.second)))*cleanMid;
     //float combiMid = max(bassMid,cleanMid);
     float combiMid = min(cleanMid,topMid);
@@ -323,7 +139,6 @@ void ofApp::update(){
     }
     ofSoundUpdate();
     listen.updateSpectrum();
-    //updateRMS();
     listen.updateTempo();
     topColour = updateColour();
     topColour = natural-topColour;

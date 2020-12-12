@@ -25,6 +25,7 @@ class GwListening
     std::vector<float> spectrum;
     std::vector<float> levelisedSpectrum;
     void updateRMS();
+
 public:
     GwListening();
     //set up the default values as above
