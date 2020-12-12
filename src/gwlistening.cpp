@@ -17,7 +17,8 @@ GwListening::GwListening()
 void GwListening::setToDefault()//set values as used in SpectrumSampler
 {
     bands = 128; bandBass = 0; bassSampleSize = 2;
-    bandMidLow = bandBass+bassSampleSize; midLowSampleSize = 5;
+    bandMidLow = bandBass+bassSampleSize;
+    midLowSampleSize = 5;
     bandMid = bandMidLow+midLowSampleSize+1;
     midSampleSize =((bands-1)-bandMid)/2;
     bandTop = bandMid+midSampleSize; topSampleSize = (bands-1)-bandTop;

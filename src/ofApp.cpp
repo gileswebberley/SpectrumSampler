@@ -5,6 +5,12 @@
  * a bit of a class thing going on, there seems to be far too many
  * groups of related variables so it's begging for it.
  * ooh it works with roy's tune too
+ *
+ * 12-12-2020
+ * so I got up and running with github which gave me the confidence
+ * to rip this apart and put back together with a better structure
+ * made up of a new Listener and Jukebox cos it was all twisted into
+ * one god-class as it was the first thing with OF
 */
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -14,8 +20,8 @@ void ofApp::setup(){
     canvas.allocate(ofGetWidth(),ofGetHeight(),GL_RGBA);
     time0 = 0;
     seedCritters();
-    midReactiveColour = ofColor(246,76,14).invert()/2;
-    topReactiveColour = ofColor(14,155,246).invert()/2;
+    midReactiveColour = ofColor(204,48,0).invert();///2;
+    topReactiveColour = ofColor(0,204,160).invert();///2;
     //undercoat.a controls the fade rate of trails
     undercoat = ofColor(70,90,70,50);
     natural = ofColor(255);
@@ -38,7 +44,6 @@ void ofApp::seedCritters(){
     for(int i =0;i<clouds; i++){
         int seed = ofGetElapsedTimeMicros()+i+(long)tmpPnt;
         ofSeedRandom(seed);
-        //so use gwlistening.setBassOut() with these
         tx[i] = ofRandom(bassOut.first,bassOut.second);
         ty[i] = ofRandom(bassOut.first,bassOut.second);
     }
