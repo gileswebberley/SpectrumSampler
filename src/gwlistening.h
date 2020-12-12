@@ -43,6 +43,7 @@ public:
     float getPeakDrop()const{return peakDropRate;}
     //frange [b,l,m,t]
     std::pair<float,float> getOutPair(char frange);
+    std::pair<float,float> getInPair(char frange);
     float normFromBass(){return ofNormalize(bm,minBassIn,maxBassIn);}
     float normFromMidLow(){return ofNormalize(mlm,minMidLIn,maxMidLIn);}
     float normFromMidHigh(){return ofNormalize(mm,minMidIn,maxMidIn);}

@@ -67,6 +67,28 @@ std::pair<float,float> GwListening::getOutPair(char frange){
     }
 }
 
+std::pair<float,float> GwListening::getInPair(char frange){
+    switch(frange){
+    case 'b':
+        return make_pair(minBassIn,maxBassIn);
+        break;
+    case 'l':
+        //doesn't exist for out atm, does on this though :)
+        return make_pair(minMidLIn,maxMidLIn);
+        break;
+    case 'm':
+        return make_pair(minMidIn,maxMidIn);
+        break;
+    case 't':
+        return make_pair(minTopIn,maxTopIn);
+        break;
+    default:
+        cerr<<"Tried to get pair from getInPair() with an illegal selection\tuse 't' for top, 'm' for mid, or 'b' for bass\n";
+        return make_pair(0.0,0.0);
+        break;
+    }
+}
+
 /*
  * This is functionality to make the spectrum measurements more
  * responsive in the top bands, a more visual representation.

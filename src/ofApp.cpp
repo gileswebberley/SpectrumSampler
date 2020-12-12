@@ -55,7 +55,7 @@ void ofApp::seedCritters(){
     for(int i =0; i<bands;i++){
         spectrum[i] = 0.0f;
     }*/
-    std::pair<float,float> bassOut = listen.getOutPair('b');
+    std::pair<float,float> bassOut = listen.getOutPair('b');//returns <minBassOut,maxBassOut>
     cout<<"the pair of values are:"<<bassOut.first<<"\t:"<<bassOut.second<<"\n";
     for(int i =0;i<clouds; i++){
         int seed = ofGetElapsedTimeMicros()+i+(long)tmpPnt;
@@ -289,13 +289,19 @@ void ofApp::fadeCanvas(){
 }
 
 float ofApp::calcSizeResponse(){
+    //hopefully getting the data as pairs it makes this work again
+    std::pair<float,float> midInPair = listen.getInPair('m');
+    std::pair<float,float> bassOutPair = listen.getOutPair('b');
+    std::pair<float,float> topOutPair = listen.getOutPair('t');
     //smaller than mid if toppy, bigger if bassy
-    //with gwListener cleanMid = normFromBassOut(normFromMidHigh(getMidHigh()))
-    float cleanMid = listen.normFromBassOut(listen.normFromMidHigh(listen.getMidHigh()));//ofMap(mid,minMidIn,maxMidIn,minBassOut,maxBassOut,true);
+    //float cleanMid = listen.normFromBassOut(listen.normFromMidHigh(listen.getMidHigh()));
+    float cleanMid = ofMap(listen.getMidHigh(),midInPair.first,midInPair.second,bassOutPair.first,bassOutPair.second,true);
     //with gwListener bassMid = normFromBassOut(getMidLow())*cleanMid
-    float bassMid = listen.normFromBassOut(listen.getMidLow())*cleanMid;//(ofNormalize(midL,minBassOut,maxBassOut))*cleanMid;//(ofMap(mid,minMidIn,maxMidIn,minBassOut,maxBassOut*2,true));//-midL;
+    //float bassMid = listen.normFromBassOut(listen.getMidLow())*cleanMid;
+    float bassMid = (ofNormalize(listen.getMidLow(),bassOutPair.first,bassOutPair.second))*cleanMid;//(ofMap(mid,minMidIn,maxMidIn,minBassOut,maxBassOut*2,true));//-midL;
     //with gwListener topmid = (1-normFromTopOut(getTop()))*cleanMid
-    float topMid = (1-listen.normFromTopOut(listen.getTop()))*cleanMid;//(1-(ofNormalize(top,minTopOut,maxTopOut)))*cleanMid;
+    //float topMid = (1-listen.normFromTopOut(listen.getTop()))*cleanMid;
+    float topMid = (1-(ofNormalize(listen.getTop(),topOutPair.first,topOutPair.second)))*cleanMid;
     //float combiMid = max(bassMid,cleanMid);
     float combiMid = min(cleanMid,topMid);
     combiMid += bassMid/1.2;
