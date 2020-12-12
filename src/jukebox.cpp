@@ -123,6 +123,20 @@ bool Jukebox::playByIndex(int index, float vn, float pan){
     return true;
 }
 
+/*
+ * Now that i'm trying to use it as the jukebox it was
+ * originally intende to be I need to do some workarounds
+ */
+void Jukebox::skipPlayer(){
+    player.stop();
+    player.setPosition(1.0);
+}
+
+bool Jukebox::simplePlaying(){
+    if(!multi_mode)return player.isPlaying();
+    else return true;
+}
+
 //use for isPlaying() style functionality
 bool Jukebox::playFile(ofFile f, float vol, float p){
     if(!player.isPlaying()){
@@ -154,7 +168,9 @@ bool Jukebox::playFile(ofFile f, float vol, float p){
         cerr<<"all players are busy\n";
         return false;
     }else{
-        cerr<<"multi-mode not enabled\n";
+        //it's not really an error cos it's just using
+        //it as originally intended
+        //cerr<<"multi-mode not enabled\n";
         return false;
     }
 
@@ -183,6 +199,7 @@ ofFile Jukebox::selectRandom(){
         //whether to play each once
         tList.erase(tList.begin()+selectTune);
         tList.shrink_to_fit();
+        jbSize = tList.size();
         cout<<"Jukebox has: "<<tList.size()<<" tracks loaded\n";
         if(tList.empty()){
             //if they've all been played in unique mode then refill collection

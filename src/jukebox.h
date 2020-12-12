@@ -35,6 +35,8 @@ public:
     //whether it has finished playing
     //pan [-1..1] = [L..R]
     bool playFile(ofFile, float volumeNormalised = 1.0, float pan =0.0);
+    void skipPlayer();
+    bool simplePlaying();
     //associates each player with a file
     bool setUpSamples();
     bool playByIndex(int index, float volumeNormalised = 1.0, float pan = 0.0);

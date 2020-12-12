@@ -10,6 +10,7 @@
 void ofApp::setup(){
     ofSetFrameRate(60);
     ofSetVerticalSync(true);
+    ofHideCursor();
     canvas.allocate(ofGetWidth(),ofGetHeight(),GL_RGBA);
     time0 = 0;
     seedCritters();
@@ -19,14 +20,10 @@ void ofApp::setup(){
     undercoat = ofColor(70,90,70,50);
     natural = ofColor(255);
     listen.clearTraining();
-    //right let's make it pick a song from the data folder
-    //ofDirectory tunes;
-    tunes.open("./");
-    tunes.allowExt("wav");
-    tunes.allowExt("mp3");
-    tunes.listDir();
-    tList = tunes.getFiles();
-    //selectAndPlayTune();
+    //implementing Jukebox...
+    juke.setFolderPath("./");
+    //we want to make sure that the jukebox is deleting files after playing (from it's list!!)
+    if(!juke.toggleUnique())juke.toggleUnique();
 }
 
 void ofApp::seedCritters(){
@@ -57,38 +54,12 @@ void ofApp::seedCritters(){
     yTendency = 0;
 }
 
-/*
- * Selects a random tune from the list and removes it
- * from the list, essentially a random play of a folder.
- * Once it has played all of the tunes on the list it then
- * refills the list and starts the process again
- */
-void ofApp::selectAndPlayTune(){
-    int noOfTunes = tList.size();
-    //create ptr for random seed
-    int* tmpPnt = &noOfTunes;
-    //cout << "number of tunes counted: "<<noOfTunes<<"\n";
-    int seed = ofGetElapsedTimeMicros()+(long)tmpPnt;
-    ofSeedRandom(seed);
-    int selectTune = floor(ofRandom(1.0)*(noOfTunes-1));
-    //cout << "tune selected: "<<selectTune<<"\n";
-    //tunes.sort();
-    //string tune = tunes.getPath(selectTune);
-    //player.load(tune);
-    player.load(tList[selectTune]);
-    tList.erase(tList.begin()+selectTune);
-    tList.shrink_to_fit();
-    cout<<"tList size is: "<<tList.size()<<"\n";
-    if(tList.empty()){
-        tList = tunes.getFiles();
-    }
-    player.setLoop(false);
-    player.play();
-    //player.setVolume(0.9);
-}
-
 
 ofColor ofApp::updateColour(){
+    //let's try doing the bg colour
+    undercoat.b = listen.normFromBass()*255;
+    undercoat.g = (listen.normFromMidHigh()*127)+(listen.normFromMidLow()*127);
+    undercoat.r = listen.normFromTop()*255;
     //work out the colour based on top and mid ranges (red:mid blue:top)
     //just builds up to max colour then doesn't go back down with lerp()
     //normalize is the same as map to [0..1]
@@ -130,14 +101,14 @@ void ofApp::update(){
     float dt = t-time0;
     dt = ofClamp(dt,0.0,0.1);
     time0 = t;
-    if(player.getPosition() == 0){
+    if(!juke.simplePlaying()){
+        juke.playFile(juke.selectRandom());
         cout<<"I've finished the song!!\n";
         seedCritters();
         listen.clearTraining();
-        selectAndPlayTune();
         listen.clearTempo();
     }
-    ofSoundUpdate();
+    //ofSoundUpdate();
     listen.updateSpectrum();
     listen.updateTempo();
     topColour = updateColour();
@@ -222,7 +193,7 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    ofBackground(70,90,70,0);
+    //ofBackground(70,90,70,0);
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     canvas.draw(0,0);
 
@@ -230,37 +201,14 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    if(key == 'b'){
-        //doesn't work??
-        player.setSpeed(-3.0);
-    }
-    if(key == 'm'){
-        player.setSpeed(3.0);
-    }
-    if(key == ' '){
-        if(player.isPlaying() && listen.isTempoSampling()){
-            listen.clearTempo();
-        }
-        player.setPaused(player.isPlaying());
-    }
     if(key == OF_KEY_RETURN){
-        cout<<"skip tune......"<<player.getPosition()<<"\n";
-        player.stop();
-        player.setPosition(1.0);
-        cout<<"position after: "<<player.getPosition()<<"\n";
-        //selectAndPlayTune();
+        juke.skipPlayer();
     }
 
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-    if(key == 'b' || key == 'm'){
-        if(listen.isTempoSampling()){
-            listen.clearTempo();
-        }
-        player.setSpeed(1);
-    }
 }
 
 //--------------------------------------------------------------
