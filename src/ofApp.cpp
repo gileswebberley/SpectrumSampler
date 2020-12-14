@@ -141,12 +141,13 @@ void ofApp::update(){
         float tT = ofGetElapsedTimef();
         bool motionDir = (motionSeeds[rep-1]<0)?false:true;
         //absolute value for bass, don't want them floating up on the drop!?
+        //map to get rid of lazy critters
         float mappedMotionAbs = ofMap(abs(motionSeeds[rep-1]),0,1,0.7,1);
         float mappedMotion = mappedMotionAbs;
         if(!motionDir){
             mappedMotion *= -1;
         }
-        float toTwitch = twitchX*(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
+        float toTwitch = (mappedMotion*twitchX)*listen.normFromTop();//(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
         nX = ((repWidth)*rep)-(repWidth/2);
         if(rep<= repsFloor){
             //work out x-coord and add 'personality' to their individual
@@ -168,13 +169,13 @@ void ofApp::update(){
         yTendency = yTendency*listen.getPeakDrop();
         //so ease will be stickier if bigger
         float bassDrag =(ease*yTendency);
-        bassDrag += (1-ease)*(ofMap(listen.normFromBass(),0.575,1,0,1,true));
-        float topLift = ((1-ease)*yTendency)+(ease*ofMap(listen.normFromTop(),0.4,0.9,0,1));
+        bassDrag += (1-ease)*listen.normFromBass();
+        float topLift = ((1-ease)*yTendency)+(ease*listen.normFromTop());
         float bDrag = (bassDrag*(listen.normFromBass()))-topLift;
         yTendency = max(yTendency,bDrag);
 
         float halfHt =ofGetHeight()/2;
-        nY = halfHt-(halfHt/3)+(((halfHt/4)*mappedMotion)*fmodf(ofSignedNoise(tT),listen.getTempo()))+(((halfHt)*mappedMotionAbs)*yTendency);
+        nY = halfHt-(halfHt/3)+((fmodf(tT,listen.getTempo())*(halfHt/4))+((mappedMotion*twitchY)*ofSignedNoise(tT)))+(((halfHt)*mappedMotionAbs)*yTendency);
         ofTranslate(nX,nY);
         ofRotateDeg(360/rep);
         ofSetColor(topColour);
