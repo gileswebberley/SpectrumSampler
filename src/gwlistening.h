@@ -21,7 +21,7 @@ class GwListening
     float minTopIn, maxTopIn, minMidLIn, maxMidLIn;
     //these are the scaling factors that are mapped to
     float maxBassOut{400},minBassOut{50},maxMidOut{2},minMidOut{0.1};
-    float maxTopOut{1}, minTopOut{0.5};
+    float maxTopOut{100}, minTopOut{0.5};
     std::vector<float> spectrum;
     std::vector<float> levelisedSpectrum;
     void updateRMS();

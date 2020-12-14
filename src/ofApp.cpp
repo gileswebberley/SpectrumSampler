@@ -17,14 +17,20 @@ void ofApp::setup(){
     ofSetFrameRate(60);
     ofSetVerticalSync(true);
     ofHideCursor();
+    //allocate the canvas for drawing onto
     canvas.allocate(ofGetWidth(),ofGetHeight(),GL_RGBA);
     time0 = 0;
+    //give each critter slightly randomised behaviour
     seedCritters();
+    //colour tendancy by bass and mid-low
     midReactiveColour = ofColor(204,48,0).invert();///2;
-    topReactiveColour = ofColor(0,204,160).invert();///2;
+    //colour tendancy by mid-high and top
+    topReactiveColour = ofColor(99,255,203).invert();///2;
     //undercoat.a controls the fade rate of trails
     undercoat = ofColor(70,90,70,50);
+    //basic colour startig point for the critters
     natural = ofColor(255);
+    //get the listener ready to start afresh
     listen.clearTraining();
     //implementing Jukebox...
     juke.setFolderPath("./");
@@ -68,8 +74,8 @@ ofColor ofApp::updateColour(){
     //work out the colour based on top and mid ranges (red:mid blue:top)
     //just builds up to max colour then doesn't go back down with lerp()
     //normalize is the same as map to [0..1]
-    float cShiftr = (listen.normFromMidLow()*2)/3;
-    cShiftr += listen.normFromBass()/3;
+    float cShiftr = ((listen.normFromMidLow()*2)+listen.normFromBass())/3;
+    //cShiftr += listen.normFromBass()/3;
     float cShiftb = (listen.normFromTop()/2)+(listen.normFromMidHigh(listen.normFromMidLow())/2);
     ofColor tmpColour(midReactiveColour*cShiftr);
     tmpColour += ofColor(topReactiveColour*cShiftb);
@@ -87,17 +93,24 @@ void ofApp::fadeCanvas(){
 
 float ofApp::calcSizeResponse(){
     //hopefully getting the data as pairs it makes this work again
+    std::pair<float,float> bassInPair = listen.getInPair('b');
     std::pair<float,float> midInPair = listen.getInPair('m');
+    std::pair<float,float> midLInPair = listen.getInPair('l');
+    std::pair<float,float> topInPair = listen.getInPair('t');
     std::pair<float,float> bassOutPair = listen.getOutPair('b');
+    std::pair<float,float> midOutPair = listen.getOutPair('m');
     std::pair<float,float> topOutPair = listen.getOutPair('t');
     //smaller than mid if toppy, bigger if bassy
-    float cleanMid = ofMap(listen.getMidHigh(),midInPair.first,midInPair.second,bassOutPair.first,bassOutPair.second,true);
-    float bassMid = (ofNormalize(listen.getMidLow(),bassOutPair.first,bassOutPair.second))*cleanMid;
-    float topMid = (1-(ofNormalize(listen.getTop(),topOutPair.first,topOutPair.second)))*cleanMid;
+    float cleanMid = ofMap(listen.getMidHigh(),midInPair.first,midInPair.second,bassOutPair.first,bassOutPair.second,true)/3;
+    cleanMid += ofMap(listen.getMidLow(),midLInPair.first,midLInPair.second,bassOutPair.first,bassOutPair.second,true)*2/3;
+    float bassMid = ofMap(listen.getBass(),bassInPair.first,bassInPair.second,bassOutPair.first,bassOutPair.second,true);
+    //float bassMid = ofNormalize(listen.getMidLow()+listen.getBass(),bassOutPair.first,bassOutPair.second)*cleanMid;
+    float topMid = ofMap(listen.getTop(),topInPair.first,topInPair.second,bassOutPair.first,bassOutPair.second,true);
+    //float topMid = (1-(ofNormalize(listen.getTop(),topInPair.first,topInPair.second)))*cleanMid;
     //float combiMid = max(bassMid,cleanMid);
-    float combiMid = min(cleanMid,topMid);
-    combiMid += bassMid/1.2;
-    return combiMid;
+    cleanMid -= topMid;//min(cleanMid,topMid);
+    cleanMid += bassMid;///1.2;
+    return cleanMid;
 }
 
 //--------------------------------------------------------------
@@ -121,7 +134,7 @@ void ofApp::update(){
     //drawing onto an ofFbo
     canvas.begin();
     fadeCanvas();
-    listen.drawSpectrum();
+    //listen.drawSpectrum();
     float repWidth = ofGetWidth()/reps;
     for(int rep = 1; rep <= reps; rep++){
         ofPushMatrix();
