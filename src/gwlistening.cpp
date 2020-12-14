@@ -33,7 +33,7 @@ void GwListening::updateSpectrum(){
     float* spectrumIn = ofSoundGetSpectrum(bands);
     //make the values decrease slowly until bumped back up
     for(int i = 0; i<bands; i++){
-        spectrum.at(i) *= ofNoise(peakDropRate);
+        spectrum.at(i) *= peakDropRate;
         spectrum.at(i) = max(spectrum.at(i), spectrumIn[i]);
     }
     //now update the measurements, ie 'listen'
@@ -177,7 +177,7 @@ void GwListening::updateRMS(){
 
     //map the readings to the specified ranges
     bass = ofMap(bm,minBassIn,maxBassIn,minBassOut,maxBassOut,true);
-    midL = ofMap(mlm,minMidLIn,maxMidLIn,minBassOut,maxBassOut,true);
+    midL = ofMap(mlm,minMidLIn,maxMidLIn,minMidLOut,maxMidLOut,true);
     mid = ofMap(mm,minMidIn,maxMidIn,minMidOut,maxMidOut, true);
     top = ofMap(tm,minTopIn,maxTopIn,minTopOut,maxTopOut,true);
     //make this the output operator for the listening?

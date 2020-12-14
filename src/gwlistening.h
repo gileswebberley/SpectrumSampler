@@ -10,18 +10,21 @@ class GwListening
     int bandMid{bandMidLow+midLowSampleSize+1},midSampleSize{((bands-1)-bandMid)/2};
     int bandTop{bandMid+midSampleSize},topSampleSize{(bands-1)-bandTop};
     int specBarX, specBarY, specBarH, specBarW;
-    int minTempoTime{2};
     float specBarCol, colCorrect;
     ofColor specBg{46}, posBand{156}, negBand{128}, topColour;
+    int minTempoTime{2};
     float tempoCount, tempo, tempoTolerance, tempoClock;
     bool tempoSampling, tempoUp, tempoCaught;
-    float bass,midL, mid, top,bm,mlm,mm,tm;//, time0;
+    //these are mapped rms from max-min-in to max-min-out values
+    float bass,midL, mid, top;
+    //these are the raw rms figures for each band-group
+    float bm,mlm,mm,tm;
     float peakDropRate{0.985};
     float maxBassIn, minBassIn, maxMidIn, minMidIn;
     float minTopIn, maxTopIn, minMidLIn, maxMidLIn;
     //these are the scaling factors that are mapped to
-    float maxBassOut{400},minBassOut{50},maxMidOut{2},minMidOut{0.1};
-    float maxTopOut{100}, minTopOut{0.5};
+    float maxBassOut{400},minBassOut{50},maxMidLOut{2},minMidLOut{0.1};
+    float maxMidOut{2},minMidOut{0.1}, maxTopOut{100}, minTopOut{0.5};
     std::vector<float> spectrum;
     std::vector<float> levelisedSpectrum;
     void updateRMS();

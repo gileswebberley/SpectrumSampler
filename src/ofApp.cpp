@@ -93,19 +93,19 @@ void ofApp::fadeCanvas(){
 
 float ofApp::calcSizeResponse(){
     //hopefully getting the data as pairs it makes this work again
-    std::pair<float,float> bassInPair = listen.getInPair('b');
-    std::pair<float,float> midInPair = listen.getInPair('m');
-    std::pair<float,float> midLInPair = listen.getInPair('l');
-    std::pair<float,float> topInPair = listen.getInPair('t');
+//    std::pair<float,float> bassInPair = listen.getInPair('b');
+//    std::pair<float,float> midInPair = listen.getInPair('m');
+//    std::pair<float,float> midLInPair = listen.getInPair('l');
+//    std::pair<float,float> topInPair = listen.getInPair('t');
     std::pair<float,float> bassOutPair = listen.getOutPair('b');
-    std::pair<float,float> midOutPair = listen.getOutPair('m');
-    std::pair<float,float> topOutPair = listen.getOutPair('t');
+//    std::pair<float,float> midOutPair = listen.getOutPair('m');
+//    std::pair<float,float> topOutPair = listen.getOutPair('t');
     //smaller than mid if toppy, bigger if bassy
-    float cleanMid = ofMap(listen.getMidHigh(),midInPair.first,midInPair.second,bassOutPair.first,bassOutPair.second,true)/3;
-    cleanMid += ofMap(listen.getMidLow(),midLInPair.first,midLInPair.second,bassOutPair.first,bassOutPair.second,true)*2/3;
-    float bassMid = ofMap(listen.getBass(),bassInPair.first,bassInPair.second,bassOutPair.first,bassOutPair.second,true);
+    float cleanMid = listen.normFromMidLow()*bassOutPair.second;//ofMap(listen.getMidHigh(),midInPair.first,midInPair.second,bassOutPair.first,bassOutPair.second,true)/3;
+    cleanMid += listen.normFromMidHigh()*bassOutPair.second;//ofMap(listen.getMidLow(),midLInPair.first,midLInPair.second,bassOutPair.first,bassOutPair.second,true)*2/3;
+    float bassMid = listen.normFromBass()*bassOutPair.second;//ofMap(listen.getBass(),bassInPair.first,bassInPair.second,bassOutPair.first,bassOutPair.second,true);
     //float bassMid = ofNormalize(listen.getMidLow()+listen.getBass(),bassOutPair.first,bassOutPair.second)*cleanMid;
-    float topMid = ofMap(listen.getTop(),topInPair.first,topInPair.second,bassOutPair.first,bassOutPair.second,true);
+    float topMid = listen.normFromTop()*bassOutPair.second/2;//ofMap(listen.getTop(),topInPair.first,topInPair.second,bassOutPair.first,bassOutPair.second,true);
     //float topMid = (1-(ofNormalize(listen.getTop(),topInPair.first,topInPair.second)))*cleanMid;
     //float combiMid = max(bassMid,cleanMid);
     cleanMid -= topMid;//min(cleanMid,topMid);
@@ -146,20 +146,21 @@ void ofApp::update(){
         if(!motionDir){
             mappedMotion *= -1;
         }
-
+        float toTwitch = twitchX*(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
         nX = ((repWidth)*rep)-(repWidth/2);
         if(rep<= repsFloor){
             //work out x-coord and add 'personality' to their individual
             //movement based on the tempo
-            nX += (twitchX*mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
+            nX += toTwitch;
+            //fade critters as they get further away from the centre one
             topColour.a = 100+rep*(155/repsCeil);
         }else if(rep > repsCeil){
             //movement based on tempo but inverted from other side of centre
-            nX -= (twitchX*mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
+            nX -= toTwitch;
             topColour.a = 255-(fmodf(rep,repsCeil)*(155/(repsCeil)));
         }else if(rep == repsCeil){
-            //no sideways movement for the centre critter
-            nX -= ((1.5*twitchX)*mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
+            //no sideways movement for the centre critter?
+            nX -= 1.5*toTwitch;
             topColour.a = 255;
         }
         //make the group head down with bass hit and up with top snaps
@@ -189,7 +190,9 @@ void ofApp::update(){
             ty[i] += ((reactionLevel)*dt)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
 
             //change from bass to midL for size
+            //destX = tx[i]*(reactionLevel*(combiMid));
             destX = ofSignedNoise(tx[i])*(reactionLevel*(combiMid));//+bass));
+            //destY = ty[i]*(reactionLevel*(combiMid));//+bass));
             destY = ofSignedNoise(ty[i])*(reactionLevel*(combiMid));//+bass));
             p[i].x = (ease*p[i].x) +(1-ease)*(destX);
             p[i].y = (ease*p[i].y) +(1-ease)*(destY);
