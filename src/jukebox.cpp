@@ -44,6 +44,81 @@ bool Jukebox::setFolderPath(string folder_path){
     return true;
 }
 
+ofFile Jukebox::selectByIndex(int i){
+    //check arg is in bounds
+    if(i>int(tList.size()-1))
+    {//if > roll around to start
+        i = i%tList.size();
+    }else if(i<0)
+    {//assume a negative is 0
+        i = 0;
+    }
+    return tList.at(i);
+}
+
+//to set up playByIndex behaviour
+bool Jukebox::setUpSamples()
+{
+    //make a player for each file in the samples folder
+    //remember makeMulti looks after no_loop and multi_play
+    makeMulti(jbSize);
+    multi_mode = false;
+    index_players = true;
+    for(int i=0; i<jbSize; i++){
+        //pre-load the samples in each
+        playerGroup.at(i)->load(selectByIndex(i));
+    }
+    cout<<"JUKEBOX: set up in sampler mode\n";
+    return true;
+}
+
+//use setUpSamples(), which uses selectByIndex() for bounds safe loading, to use this functionality
+bool Jukebox::playByIndex(int index, float vn, float pan){
+    if(!index_players){
+        //if we're not set up by index samples then convert to
+        //a play by file call
+        cerr<<"JUKEBOX: Play by index system not initialised before calling playByIndex...use setUpSampler()\n";
+        //use bounds checking of selectByIndex()
+        return playFile(selectByIndex(index),vn,pan);
+    }
+    //get the index in bounds
+    index = (index<0)?abs(index):index;
+    //using jbSize as it's an int rather than size_t
+    //careful, jbSize is effected by unique_mode behaviour
+    //finally using playerGroup.size as that is what we're
+    //trying not to go out of bounds with after all?
+    index = (index>=(int)playerGroup.size())?index%(int)playerGroup.size():index;
+    ofSoundPlayer* sample = playerGroup.at(index);
+    sample->setPan(pan);
+    sample->setVolume(vn);
+    sample->play();
+    cout<<"JUKEBOX: playing sample #"<<index<<" position\n";
+    return true;
+}
+
+ofFile Jukebox::selectRandom(){
+    int me = 2;
+    int* seedPtr = &me;
+    //make it as random as possible
+    int seed = ofGetElapsedTimeMicros()+(long)seedPtr;
+    ofSeedRandom(seed);
+    int selectTune = floor(ofRandom(1.0)*(jbSize-1));
+    if(unique_mode && !index_players){
+        //whether to play each once
+        tList.erase(tList.begin()+selectTune);
+        tList.shrink_to_fit();
+        cout<<"Jukebox has: "<<tList.size()<<" tracks loaded\n";
+        if(tList.empty()){
+            //if they've all been played in unique mode then refill collection
+            tList = tunes.getFiles();
+        }
+        //ensure jbSize reflects current size of the directory list
+        jbSize = tList.size();
+    }
+
+    return tList.at(selectTune);
+}
+
 bool Jukebox::toggleUnique(){
     unique_mode = !unique_mode;
     return unique_mode;
@@ -52,18 +127,19 @@ bool Jukebox::toggleUnique(){
 void Jukebox::makeMulti(int nOfPlayers){
     //check arg is reasonable...
     if(nOfPlayers<0||nOfPlayers>32){
-        cerr<<"Jukebox: why did you ask for "<<nOfPlayers<<" players?? Must be in range [0..32]\n";
+        cerr<<"Jukebox: multi-players must be in range [0..32]\n";
         return;
     }
     int pgs = playerGroup.size();
     //check the player pool hasn't already been made big enough
-    if(multi_mode && nOfPlayers<=pgs){
-        cerr<<"Jukebox: enough players already\n";
+    if(multi_mode && nOfPlayers==pgs){
+        cerr<<"Jukebox: has "<<nOfPlayers<<" players already\n";
         return;
     }
     //if we want less than we've got clear up
     if(multi_mode && nOfPlayers<pgs){
         pgs -= nOfPlayers;
+        cerr<<"Jukebox: shrank multi-player capacity by "<<pgs<<" players\n";
         while(pgs > 0){
             //delete the pointer to player
             delete playerGroup.back();
@@ -88,56 +164,34 @@ void Jukebox::makeMulti(int nOfPlayers){
     cout<<"\nMultiplay capacity: "<<playerGroup.size()<<"\n";
 }
 
-bool Jukebox::setUpSamples()
-{
-    //make a player for each file in the samples folder
-    //remember makeMulti looks after no_loop and multi_play
-    makeMulti(jbSize);
-    multi_mode = false;
-    index_players = true;
-    for(int i=0; i<jbSize; i++){
-        //pre-load the samples in each
-        playerGroup.at(i)->load(selectByIndex(i));
-    }
-    cout<<"JUKEBOX: set up in sampler mode\n";
-    return true;
-}
-
-bool Jukebox::playByIndex(int index, float vn, float pan){
-    if(!index_players){
-        //if we're not set up by index samples then convert to
-        //a play by file call
-        cerr<<"JUKEBOX: Play by index system not initialised before calling playByIndex...use setUpSampler()\n";
-        //use bounds checking of selectByIndex()
-        return playFile(selectByIndex(index),vn,pan);
-    }
-    //get the index in bounds
-    index = (index<0)?abs(index):index;
-    //using jbSize as it's an int rather than size_t
-    index = (index>=jbSize)?index%jbSize:index;
-    ofSoundPlayer* sample = playerGroup.at(index);
-    sample->setPan(pan);
-    sample->setVolume(vn);
-    sample->play();
-    cout<<"JUKEBOX: playing sample #"<<index<<" position\n";
-    return true;
-}
-
 /*
  * Now that i'm trying to use it as the jukebox it was
  * originally intende to be I need to do some workarounds
  */
 void Jukebox::skipPlayer(){
-    player.stop();
-    player.setPosition(1.0);
-}
-
-bool Jukebox::simplePlaying(){
-    if(!multi_mode)return player.isPlaying();
-    else return true;
+    if(!multi_mode){
+        player.stop();
+        player.setPosition(1.0);
+    }
 }
 
 //use for isPlaying() style functionality
+bool Jukebox::simplePlaying(){
+    if(!multi_mode)return player.isPlaying();
+    else{
+        if(!player.isPlaying()){
+            return false;
+        }else{
+            for (ofSoundPlayer* sp : playerGroup){
+                if(!sp->isPlaying())return false;
+            }
+        }
+        //every player is busy so playergroup.isPlaying() equiv.
+        return true;
+    }
+}
+
+//returns success of play request
 bool Jukebox::playFile(ofFile f, float vol, float p){
     if(!player.isPlaying()){
         cout<<"player is available\n";
@@ -176,39 +230,6 @@ bool Jukebox::playFile(ofFile f, float vol, float p){
 
 }
 
-ofFile Jukebox::selectByIndex(int i){
-    //check arg is in bounds
-    if(i>int(tList.size()-1))
-    {//if > roll around to start
-        i = i%tList.size();
-    }else if(i<0)
-    {//assume a negative is 0
-        i = 0;
-    }
-    return tList.at(i);
-}
-
-ofFile Jukebox::selectRandom(){
-    int me = 2;
-    int* seedPtr = &me;
-    //make it as random as possible
-    int seed = ofGetElapsedTimeMicros()+(long)seedPtr;
-    ofSeedRandom(seed);
-    int selectTune = floor(ofRandom(1.0)*(jbSize-1));
-    if(unique_mode){
-        //whether to play each once
-        tList.erase(tList.begin()+selectTune);
-        tList.shrink_to_fit();
-        jbSize = tList.size();
-        cout<<"Jukebox has: "<<tList.size()<<" tracks loaded\n";
-        if(tList.empty()){
-            //if they've all been played in unique mode then refill collection
-            tList = tunes.getFiles();
-        }
-    }
-
-    return tList.at(selectTune);
-}
 
 void Jukebox::update(){
     ofSoundUpdate();

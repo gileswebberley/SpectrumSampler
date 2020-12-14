@@ -35,7 +35,9 @@ public:
     //whether it has finished playing
     //pan [-1..1] = [L..R]
     bool playFile(ofFile, float volumeNormalised = 1.0, float pan =0.0);
+    //can only be used with single player, not in multi-mode
     void skipPlayer();
+    //use to poll without having any effect (simply adaptor to the original player's state)
     bool simplePlaying();
     //associates each player with a file
     bool setUpSamples();
