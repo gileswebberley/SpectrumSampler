@@ -148,6 +148,7 @@ void ofApp::update(){
         if(!motionDir){
             mappedMotion *= -1;
         }
+        //x movement caused by top end frequencies ---------------------
         float toTwitch = (mappedMotion*twitchX)*listen.normFromTop();//(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
         nX = ((repWidth)*rep)-(repWidth/2);
         if(rep<= repsFloor){
@@ -162,9 +163,10 @@ void ofApp::update(){
             topColour.a = 255-(fmodf(rep,repsCeil)*(155/(repsCeil)));
         }else if(rep == repsCeil){
             //no sideways movement for the centre critter?
-            nX -= 1.5*toTwitch;
+            nX += toTwitch;
             topColour.a = 255;
         }
+        //y-movement based on a plethora of frequencies and the tempo -------------------------
         //make the group head down with bass hit and up with top snaps
         //great, works pretty nicely first time
         yTendency = yTendency*listen.getPeakDrop();
@@ -184,6 +186,7 @@ void ofApp::update(){
             tempoYMovement = sin(fmodf(tT,3.14))*twitchY*mappedMotion;;
         }
         nY = halfHt+tempoYMovement+((0.5*twitchY)*ofSignedNoise(tT))+(((halfHt)*mappedMotionAbs)*yTendency);
+        //now we've worked out the position for the critter simply translate/rotate then draw ----------------
         ofTranslate(nX,nY);
         ofRotateDeg(360/rep);
         ofSetColor(topColour);
@@ -199,9 +202,9 @@ void ofApp::update(){
             ty[i] += ((reactionLevel)*dt)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
 
             //change from bass to midL for size
-            //destX = tx[i]*(reactionLevel*(combiMid));
+            //destX = tx[i]+(reactionLevel*(combiMid));
             destX = ofSignedNoise(tx[i])*(reactionLevel*(combiMid));//+bass));
-            //destY = ty[i]*(reactionLevel*(combiMid));//+bass));
+            //destY = ty[i]+(reactionLevel*(combiMid));//+bass));
             destY = ofSignedNoise(ty[i])*(reactionLevel*(combiMid));//+bass));
             p[i].x = (ease*p[i].x) +(1-ease)*(destX);
             p[i].y = (ease*p[i].y) +(1-ease)*(destY);

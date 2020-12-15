@@ -102,12 +102,14 @@ ofFile Jukebox::selectRandom(){
     //make it as random as possible
     int seed = ofGetElapsedTimeMicros()+(long)seedPtr;
     ofSeedRandom(seed);
-    int selectTune = floor(ofRandom(1.0)*(jbSize-1));
+    int selectTune = floor(ofRandom(1.0)*(tList.size()-1));
+
+    ofFile tmpTune = tList.at(selectTune);
     if(unique_mode && !index_players){
         //whether to play each once
+        cout<<"Jukebox has: "<<tList.size()<<" tracks, deleting track: "<<tmpTune.getBaseName()<<"\n";
         tList.erase(tList.begin()+selectTune);
         tList.shrink_to_fit();
-        cout<<"Jukebox has: "<<tList.size()<<" or jb: "<<jbSize<<" tracks loaded\n";
         if(tList.empty()){
             //if they've all been played in unique mode then refill collection
             tList = tunes.getFiles();
@@ -115,8 +117,10 @@ ofFile Jukebox::selectRandom(){
         //ensure jbSize reflects current size of the directory list
         jbSize = tList.size();
     }
-
-    return tList.at(selectTune);
+    //there, found a crappy bug, hadn't even noticed up til now
+    //we were returning tList.at(selectTune) which had been deleted!!?
+    cout<<"Track now at the selected position: "<<tList.at(selectTune).getBaseName()<<"\n";
+    return tmpTune;
 }
 
 bool Jukebox::toggleUnique(){
