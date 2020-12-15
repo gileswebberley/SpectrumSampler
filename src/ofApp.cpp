@@ -35,7 +35,8 @@ void ofApp::setup(){
     //implementing Jukebox...
     juke.setFolderPath("./");
     //we want to make sure that the jukebox is deleting files after playing (from it's list!!)
-    if(!juke.toggleUnique())juke.toggleUnique();
+    //if(!juke.toggleUnique())juke.toggleUnique();
+    juke.toggleUnique();
 }
 
 void ofApp::seedCritters(){
@@ -175,7 +176,14 @@ void ofApp::update(){
         yTendency = max(yTendency,bDrag);
 
         float halfHt =ofGetHeight()/2;
-        nY = halfHt-(halfHt/3)+((fmodf(tT,listen.getTempo())*(halfHt/4))+((mappedMotion*twitchY)*ofSignedNoise(tT)))+(((halfHt)*mappedMotionAbs)*yTendency);
+        //new section for tempo movement -----------------------------------------------------
+        float tempoYMovement;
+        if(listen.isTempoSampled()){
+            tempoYMovement = sin(fmodf(tT,listen.getTempo())/(listen.getTempo()/3.14))*twitchY*mappedMotion;
+        }else{
+            tempoYMovement = sin(fmodf(tT,3.14))*twitchY*mappedMotion;;
+        }
+        nY = halfHt+tempoYMovement+((0.5*twitchY)*ofSignedNoise(tT))+(((halfHt)*mappedMotionAbs)*yTendency);
         ofTranslate(nX,nY);
         ofRotateDeg(360/rep);
         ofSetColor(topColour);

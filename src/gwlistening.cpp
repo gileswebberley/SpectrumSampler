@@ -116,7 +116,7 @@ const std::vector<float>* GwListening::getLevelisedSpectrum()
         speci /= 2;
         specj /= 2;
             }
-    float hzstep = 44100/bands;
+    //float hzstep = 44100/bands;
         float compv = 0.f;
         compv = (speci+specj)/2;
         levelisedSpectrum.at(i*2) = speci;
@@ -181,7 +181,7 @@ void GwListening::updateRMS(){
     mid = ofMap(mm,minMidIn,maxMidIn,minMidOut,maxMidOut, true);
     top = ofMap(tm,minTopIn,maxTopIn,minTopOut,maxTopOut,true);
     //make this the output operator for the listening?
-    cout<<"\nLISTENING: bass: "<<bass<<"\tmid low: "<<midL<<"\tmid high: "<<mid<<"\ttop: "<<top<<"\n";
+    //cout<<"\nLISTENING: bass: "<<bass<<"\tmid low: "<<midL<<"\tmid high: "<<mid<<"\ttop: "<<top<<"\n";
 }
 
 void GwListening::clearTraining(){
@@ -219,33 +219,42 @@ void GwListening::clearTempo()
     tempoSampling = false;
     tempoCaught = false;
     tempoUp = false;
-    tempoTolerance = maxBassOut*0.45;
+    //updated to use tempoEar in updateTempo()
+    tempoTolerance = (maxBassOut+maxMidLOut)*0.45;
     //maybe the first 4 bass hits (incase of dbl hits)
     tempoCount = 0;
     //set the length of tempo in seconds
-    tempo = 30.0;
+    tempo = 0.0;
     tempoClock = ofGetElapsedTimef();
 }
 
 void GwListening::updateTempo(){
-    if(bass >= tempoTolerance && tempoSampling == false && tempoCaught == false){
+    //needs improving...just using bass var currently
+    float tempoEar{(bass/maxBassOut>midL/maxMidLOut)?bass+maxMidLOut:midL+maxBassOut};
+    tempoEar /= 2;//earDivider;
+    //cerr<<"TEMPO tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\n";
+    if(tempoEar >= tempoTolerance && tempoSampling == false && tempoCaught == false){
+        cout<<"in the first tempo sample tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\n bass up\n";
         tempoClock = ofGetElapsedTimef();
         tempoSampling = true;
         tempoUp =true;
-        tempoTolerance = bass;
-        cout<<"in the first tempo sample, bass up\n";
+        tempoTolerance = (tempoEar)*0.85;
     }
     if(!tempoCaught && tempoSampling){
-        if(bass < tempoTolerance && tempoUp == true){
+        if(tempoEar < tempoTolerance && tempoUp == true){
             tempoUp = false;
             tempoCount++;
-            cout<<"bass down\n";
+            cout<<"tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\nbass down\n";
         }
         if(tempoCount < 4){
-
-            if(bass >= tempoTolerance && tempoUp == false){
+//            if(tempoEar < tempoTolerance && tempoUp == true){
+//                tempoUp = false;
+//                tempoCount++;
+//                cout<<"tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\nbass down\n";
+//            }
+            if(tempoEar >= tempoTolerance && tempoUp == false){
                 tempoUp = true;
-                cout<<"bass up\n";
+                cout<<"tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\nbass up\n";
             }
         }else{
             float now = ofGetElapsedTimef();

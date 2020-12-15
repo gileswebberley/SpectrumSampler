@@ -107,7 +107,7 @@ ofFile Jukebox::selectRandom(){
         //whether to play each once
         tList.erase(tList.begin()+selectTune);
         tList.shrink_to_fit();
-        cout<<"Jukebox has: "<<tList.size()<<" tracks loaded\n";
+        cout<<"Jukebox has: "<<tList.size()<<" or jb: "<<jbSize<<" tracks loaded\n";
         if(tList.empty()){
             //if they've all been played in unique mode then refill collection
             tList = tunes.getFiles();

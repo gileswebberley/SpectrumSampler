@@ -12,8 +12,8 @@ class GwListening
     int specBarX, specBarY, specBarH, specBarW;
     float specBarCol, colCorrect;
     ofColor specBg{46}, posBand{156}, negBand{128}, topColour;
-    int minTempoTime{2};
-    float tempoCount, tempo, tempoTolerance, tempoClock;
+    float minTempoTime{2};
+    float tempoCount{0}, tempo{1.0}, tempoTolerance, tempoClock{0};
     bool tempoSampling, tempoUp, tempoCaught;
     //these are mapped rms from max-min-in to max-min-out values
     float bass,midL, mid, top;
@@ -63,7 +63,7 @@ public:
     void drawSpectrum();
     void clearTempo();
     void updateTempo();
-    bool isTempoSampling(){return tempoSampling;}
+    bool isTempoSampled(){return tempoCaught;}
     void clearTraining();
 };
 
