@@ -35,8 +35,7 @@ void ofApp::setup(){
     //implementing Jukebox...
     juke.setFolderPath("./");
     //we want to make sure that the jukebox is deleting files after playing (from it's list!!)
-    //if(!juke.toggleUnique())juke.toggleUnique();
-    juke.toggleUnique();
+    if(!juke.toggleUnique())juke.toggleUnique();
 }
 
 void ofApp::seedCritters(){
@@ -93,24 +92,14 @@ void ofApp::fadeCanvas(){
 }
 
 float ofApp::calcSizeResponse(){
-    //hopefully getting the data as pairs it makes this work again
-//    std::pair<float,float> bassInPair = listen.getInPair('b');
-//    std::pair<float,float> midInPair = listen.getInPair('m');
-//    std::pair<float,float> midLInPair = listen.getInPair('l');
-//    std::pair<float,float> topInPair = listen.getInPair('t');
     std::pair<float,float> bassOutPair = listen.getOutPair('b');
-//    std::pair<float,float> midOutPair = listen.getOutPair('m');
-//    std::pair<float,float> topOutPair = listen.getOutPair('t');
     //smaller than mid if toppy, bigger if bassy
-    float cleanMid = listen.normFromMidLow()*bassOutPair.second;//ofMap(listen.getMidHigh(),midInPair.first,midInPair.second,bassOutPair.first,bassOutPair.second,true)/3;
-    cleanMid += listen.normFromMidHigh()*bassOutPair.second;//ofMap(listen.getMidLow(),midLInPair.first,midLInPair.second,bassOutPair.first,bassOutPair.second,true)*2/3;
-    float bassMid = listen.normFromBass()*bassOutPair.second;//ofMap(listen.getBass(),bassInPair.first,bassInPair.second,bassOutPair.first,bassOutPair.second,true);
-    //float bassMid = ofNormalize(listen.getMidLow()+listen.getBass(),bassOutPair.first,bassOutPair.second)*cleanMid;
-    float topMid = listen.normFromTop()*bassOutPair.second/2;//ofMap(listen.getTop(),topInPair.first,topInPair.second,bassOutPair.first,bassOutPair.second,true);
-    //float topMid = (1-(ofNormalize(listen.getTop(),topInPair.first,topInPair.second)))*cleanMid;
-    //float combiMid = max(bassMid,cleanMid);
+    float cleanMid = listen.normFromMidLow()*bassOutPair.second;
+    cleanMid += listen.normFromMidHigh()*bassOutPair.second/2;
+    float bassMid = listen.normFromBass()*bassOutPair.second;
+    float topMid = listen.normFromTop()*bassOutPair.second/2;
     cleanMid -= topMid;//min(cleanMid,topMid);
-    cleanMid += bassMid;///1.2;
+    cleanMid += bassMid;
     return cleanMid;
 }
 
@@ -149,21 +138,21 @@ void ofApp::update(){
             mappedMotion *= -1;
         }
         //x movement caused by top end frequencies ---------------------
-        float toTwitch = (mappedMotion*twitchX)*listen.normFromTop();//(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
+        float toTwitch = (mappedMotion*twitchX)*(listen.normFromTop()+listen.normFromMidHigh())/2;//(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
         nX = ((repWidth)*rep)-(repWidth/2);
         if(rep<= repsFloor){
             //work out x-coord and add 'personality' to their individual
             //movement based on the tempo
-            nX += toTwitch;
+            nX -= toTwitch;
             //fade critters as they get further away from the centre one
             topColour.a = 100+rep*(155/repsCeil);
         }else if(rep > repsCeil){
             //movement based on tempo but inverted from other side of centre
-            nX -= toTwitch;
+            nX += toTwitch;
             topColour.a = 255-(fmodf(rep,repsCeil)*(155/(repsCeil)));
         }else if(rep == repsCeil){
             //no sideways movement for the centre critter?
-            nX += toTwitch;
+            //nX += toTwitch;
             topColour.a = 255;
         }
         //y-movement based on a plethora of frequencies and the tempo -------------------------

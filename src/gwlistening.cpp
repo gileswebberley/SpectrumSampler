@@ -4,12 +4,12 @@
  */
 GwListening::GwListening()
 {
-    clearTempo();
     //default visualisation
-    setupSpectrumGraph(10,ofGetHeight(),ofGetWidth()-20,300);
+    //setupSpectrumGraph(10,ofGetHeight(),ofGetWidth()-20,300);
     clearTempo();//tempoTolerance = maxBassOut*0.45;
     clearTraining();
     //make a clean spectrum vector, saves checking in the 1st updateRms call
+    spectrum.reserve(bands);
     spectrum.assign(bands,0.f);
     levelisedSpectrum.assign(bands,0.f);
 }
@@ -23,6 +23,9 @@ void GwListening::setToDefault()//set values as used in SpectrumSampler
     midSampleSize =((bands-1)-bandMid)/2;
     bandTop = bandMid+midSampleSize; topSampleSize = (bands-1)-bandTop;
     minTempoTime = 2;
+    spectrum.reserve(bands);
+    spectrum.assign(bands,0.f);
+    levelisedSpectrum.assign(bands,0.f);
     clearTraining();
 }
 
@@ -199,7 +202,6 @@ void GwListening::clearTraining(){
 void GwListening::setupSpectrumGraph(int x, int y, int w, int h)
 {
     cout<<"LISTENING: spectrum graph xywh: "<<x<<" "<<y<<" "<<w<<" "<<h<<"\n";
-    spectrum.reserve(bands);
     specBarX = x;//10
     specBarW = w;//ofGetWidth() - 20;
     specBarH = h;//300;
@@ -229,15 +231,16 @@ void GwListening::clearTempo()
 }
 
 void GwListening::updateTempo(){
-    //needs improving...just using bass var currently
+    //listen to the louder between bass and mid-low bands
     float tempoEar{(bass/maxBassOut>midL/maxMidLOut)?bass+maxMidLOut:midL+maxBassOut};
-    tempoEar /= 2;//earDivider;
+    tempoEar /= 2;
     //cerr<<"TEMPO tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\n";
     if(tempoEar >= tempoTolerance && tempoSampling == false && tempoCaught == false){
         cout<<"in the first tempo sample tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\n bass up\n";
         tempoClock = ofGetElapsedTimef();
         tempoSampling = true;
         tempoUp =true;
+        //set the tolerance to close to this reading (picking out the loudest sound)
         tempoTolerance = (tempoEar)*0.85;
     }
     if(!tempoCaught && tempoSampling){
@@ -246,12 +249,7 @@ void GwListening::updateTempo(){
             tempoCount++;
             cout<<"tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\nbass down\n";
         }
-        if(tempoCount < 4){
-//            if(tempoEar < tempoTolerance && tempoUp == true){
-//                tempoUp = false;
-//                tempoCount++;
-//                cout<<"tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\nbass down\n";
-//            }
+        if(tempoCount < tempoBeatsInBar){
             if(tempoEar >= tempoTolerance && tempoUp == false){
                 tempoUp = true;
                 cout<<"tolerance: "<<tempoTolerance<<" ear: "<<tempoEar<<"\nbass up\n";

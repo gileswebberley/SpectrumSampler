@@ -12,7 +12,7 @@ class GwListening
     int specBarX, specBarY, specBarH, specBarW;
     float specBarCol, colCorrect;
     ofColor specBg{46}, posBand{156}, negBand{128}, topColour;
-    float minTempoTime{2};
+    float minTempoTime{2}, tempoBeatsInBar{4};
     float tempoCount{0}, tempo{1.0}, tempoTolerance, tempoClock{0};
     bool tempoSampling, tempoUp, tempoCaught;
     //these are mapped rms from max-min-in to max-min-out values
@@ -52,7 +52,7 @@ public:
     float normFromMidLow(){return ofNormalize(mlm,minMidLIn,maxMidLIn);}
     float normFromMidHigh(){return ofNormalize(mm,minMidIn,maxMidIn);}
     float normFromTop(){return ofNormalize(tm,minTopIn,maxTopIn);}
-    //s[0..1] so scale to the range given eg [minBassOut..maxBassOut]
+    //returns [0..1] as to where s is in the range given eg [minBassOut..maxBassOut]
     float normFromBass(float s){return ofNormalize(s,minBassIn,maxBassIn);}
     float normFromBassOut(float s){return ofNormalize(s,minBassOut,maxBassOut);}
     float normFromMidLow(float s){return ofNormalize(s,minMidLIn,maxMidLIn);}

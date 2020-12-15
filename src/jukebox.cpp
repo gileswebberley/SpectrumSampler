@@ -103,7 +103,7 @@ ofFile Jukebox::selectRandom(){
     int seed = ofGetElapsedTimeMicros()+(long)seedPtr;
     ofSeedRandom(seed);
     int selectTune = floor(ofRandom(1.0)*(tList.size()-1));
-
+    //needed for bug fix
     ofFile tmpTune = tList.at(selectTune);
     if(unique_mode && !index_players){
         //whether to play each once
@@ -119,7 +119,7 @@ ofFile Jukebox::selectRandom(){
     }
     //there, found a crappy bug, hadn't even noticed up til now
     //we were returning tList.at(selectTune) which had been deleted!!?
-    cout<<"Track now at the selected position: "<<tList.at(selectTune).getBaseName()<<"\n";
+    //cout<<"Track now at the selected position: "<<tList.at(selectTune).getBaseName()<<"\n";
     return tmpTune;
 }
 
