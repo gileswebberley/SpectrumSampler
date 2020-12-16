@@ -12,8 +12,8 @@ class ofApp : public ofBaseApp{
     //Listening uses the ofSoundGetSpectrum() to get fft so only for ofSoundPlayers atm
     GwListening listen;
     //constants that affect the visualisation, both movement and shapes
-    const static int connDist{30},clouds{50},cloudRadius{4},reps{7},reactionMagnifier{2},twitchX{200},twitchY{200};
-    constexpr static float ease{0.15};
+    const static int connDist{30},clouds{50},cloudRadius{4},reps{7},twitchX{200},twitchY{200};
+    constexpr static float ease{0.15}, reactionMagnifier{0.25};
     //reps is to do with the number of critters and their spacing (best with odd number for reps)
     int repsFloor = floor(reps/2.0);
     int repsCeil = floor((reps+1)/2);

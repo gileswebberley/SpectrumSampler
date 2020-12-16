@@ -93,12 +93,13 @@ void ofApp::fadeCanvas(){
 float ofApp::calcSizeResponse(){
     std::pair<float,float> bassOutPair = listen.getOutPair('b');
     //smaller than mid if toppy, bigger if bassy
-    float cleanMid = listen.normFromMidLow()*bassOutPair.second;
-    cleanMid += listen.normFromMidHigh()*bassOutPair.second;
+    float cleanMid = listen.normFromMidLow()*(bassOutPair.second);
+    cleanMid += listen.normFromMidHigh()*(bassOutPair.second);
     float bassMid = listen.normFromBass()*bassOutPair.second;
-    float topMid = listen.normFromTop()*bassOutPair.second/2;
+    float topMid = listen.normFromTop()*bassOutPair.second;
     cleanMid -= topMid;//min(cleanMid,topMid);
     cleanMid += bassMid;
+    cleanMid += bassOutPair.first;
     return cleanMid;
 }
 
@@ -181,33 +182,6 @@ void ofApp::update(){
         ofSetColor(topColour);
         float reactionLevel = mappedMotion*reactionMagnifier;
         drawCritter(dt,reactionLevel);
-//        ofFill();
-//        //make a polygon with curved edges to make it more 'organic'
-//        //so set the first point as an anchor
-//        ofPolyline critter;
-//        critter.addVertex(p[0]);
-//        float reactionLevel = mappedMotion*reactionMagnifier;
-//        float combiMid = calcSizeResponse();
-//        for(int i = 0; i < clouds; i++){
-//            tx[i] += ((reactionLevel)*dt)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
-//            ty[i] += ((reactionLevel)*dt)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
-
-//            //change from bass to midL for size
-//            destX = ofSignedNoise(tx[i])*(reactionLevel*(combiMid));
-//            destY = ofSignedNoise(ty[i])*(reactionLevel*(combiMid));
-//            p[i].x = (ease*p[i].x) +(1-ease)*(destX);
-//            p[i].y = (ease*p[i].y) +(1-ease)*(destY);
-
-//            critter.addVertex(p[i]);
-//            for(int j = i+1; j < clouds; j++){
-//                //WAY more processing!!
-//                critter.curveTo(p[j],10);
-//            }
-//            ofDrawCircle(p[i],cloudRadius);
-//        }
-//        critter.addVertex(p[clouds-1]);
-//        ofSetLineWidth(cloudRadius/2);
-//        critter.draw();
         ofPopMatrix();
     }
     canvas.end();
@@ -222,12 +196,18 @@ void ofApp::drawCritter(float duration, float reaction_level){
 //    float reactionLevel = mappedMotion*reactionMagnifier;
     float combiMid = calcSizeResponse();
     for(int i = 0; i < clouds; i++){
-        tx[i] += ((reaction_level)*duration)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
-        ty[i] += ((reaction_level)*duration)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
+        //how much is each point in the critter moving in this frame
+        //the listen state is used to affect the movement speed and
+        //kinda makes it sway with the swells in the music
+        tx[i] += ((reaction_level*(1+listen.normFromMidHigh()+listen.normFromTop()))*duration);
+        ty[i] += ((reaction_level*(1+listen.normFromMidLow()+listen.normFromBass()))*duration);
 
-        //change from bass to midL for size
-        destX = ofSignedNoise(tx[i])*(reaction_level*(combiMid));
-        destY = ofSignedNoise(ty[i])*(reaction_level*(combiMid));
+        //signed noise so they don't just expand endlessly but instead throb
+        //two dimensional noise adds more fluidity to the movement
+        destX = ofSignedNoise(tx[i],ty[i])*combiMid;//*(reaction_level*(combiMid));
+        destY = ofSignedNoise(ty[i],tx[i])*combiMid;//*(reaction_level*(combiMid));
+        //then make the actual points head towards their target position
+        //if ease is small it will be twitchy, if larger, more saggy [0..1]
         p[i].x = (ease*p[i].x) +(1-ease)*(destX);
         p[i].y = (ease*p[i].y) +(1-ease)*(destY);
 
