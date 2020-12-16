@@ -30,6 +30,9 @@ public:
     void update();
     void draw();
     void seedCritters();
+    //duration of the time-step (ie now-then)
+    //reaction level [0..1] states how reactive they are
+    void drawCritter(float duration, float reaction_level);
     void fadeCanvas();
     ofColor updateColour();
     float calcSizeResponse();

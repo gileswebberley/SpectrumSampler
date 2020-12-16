@@ -68,15 +68,14 @@ void ofApp::seedCritters(){
 
 ofColor ofApp::updateColour(){
     //let's try doing the bg colour
-    undercoat.b = listen.normFromBass()*255;
-    undercoat.g = (listen.normFromMidHigh()*127)+(listen.normFromMidLow()*127);
-    undercoat.r = listen.normFromTop()*255;
+    undercoat.r = (listen.normFromBass()*180)+(listen.normFromMidLow()*75);
+    undercoat.g = (listen.normFromMidHigh()*180)+(listen.normFromMidLow()*75);
+    undercoat.b = (listen.normFromMidHigh()*75)+(listen.normFromTop()*180);
     //work out the colour based on top and mid ranges (red:mid blue:top)
     //just builds up to max colour then doesn't go back down with lerp()
     //normalize is the same as map to [0..1]
     float cShiftr = ((listen.normFromMidLow()*2)+listen.normFromBass())/3;
-    //cShiftr += listen.normFromBass()/3;
-    float cShiftb = (listen.normFromTop()/2)+(listen.normFromMidHigh(listen.normFromMidLow())/2);
+    float cShiftb = (listen.normFromTop()/2)+(listen.normFromMidHigh()/2);
     ofColor tmpColour(midReactiveColour*cShiftr);
     tmpColour += ofColor(topReactiveColour*cShiftb);
     return tmpColour;
@@ -95,7 +94,7 @@ float ofApp::calcSizeResponse(){
     std::pair<float,float> bassOutPair = listen.getOutPair('b');
     //smaller than mid if toppy, bigger if bassy
     float cleanMid = listen.normFromMidLow()*bassOutPair.second;
-    cleanMid += listen.normFromMidHigh()*bassOutPair.second/2;
+    cleanMid += listen.normFromMidHigh()*bassOutPair.second;
     float bassMid = listen.normFromBass()*bassOutPair.second;
     float topMid = listen.normFromTop()*bassOutPair.second/2;
     cleanMid -= topMid;//min(cleanMid,topMid);
@@ -127,6 +126,7 @@ void ofApp::update(){
     //listen.drawSpectrum();
     float repWidth = ofGetWidth()/reps;
     for(int rep = 1; rep <= reps; rep++){
+        //for each critter in the group.........
         ofPushMatrix();
         float tT = ofGetElapsedTimef();
         bool motionDir = (motionSeeds[rep-1]<0)?false:true;
@@ -179,40 +179,69 @@ void ofApp::update(){
         ofTranslate(nX,nY);
         ofRotateDeg(360/rep);
         ofSetColor(topColour);
-        ofFill();
-        //make a polygon with curved edges to make it more 'organic'
-        //so set the first point as an anchor
-        ofPolyline critter;
-        critter.addVertex(p[0]);
         float reactionLevel = mappedMotion*reactionMagnifier;
-        float combiMid = calcSizeResponse();
-        for(int i = 0; i < clouds; i++){
-            tx[i] += ((reactionLevel)*dt)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
-            ty[i] += ((reactionLevel)*dt)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
+        drawCritter(dt,reactionLevel);
+//        ofFill();
+//        //make a polygon with curved edges to make it more 'organic'
+//        //so set the first point as an anchor
+//        ofPolyline critter;
+//        critter.addVertex(p[0]);
+//        float reactionLevel = mappedMotion*reactionMagnifier;
+//        float combiMid = calcSizeResponse();
+//        for(int i = 0; i < clouds; i++){
+//            tx[i] += ((reactionLevel)*dt)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
+//            ty[i] += ((reactionLevel)*dt)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
 
-            //change from bass to midL for size
-            //destX = tx[i]+(reactionLevel*(combiMid));
-            destX = ofSignedNoise(tx[i])*(reactionLevel*(combiMid));//+bass));
-            //destY = ty[i]+(reactionLevel*(combiMid));//+bass));
-            destY = ofSignedNoise(ty[i])*(reactionLevel*(combiMid));//+bass));
-            p[i].x = (ease*p[i].x) +(1-ease)*(destX);
-            p[i].y = (ease*p[i].y) +(1-ease)*(destY);
+//            //change from bass to midL for size
+//            destX = ofSignedNoise(tx[i])*(reactionLevel*(combiMid));
+//            destY = ofSignedNoise(ty[i])*(reactionLevel*(combiMid));
+//            p[i].x = (ease*p[i].x) +(1-ease)*(destX);
+//            p[i].y = (ease*p[i].y) +(1-ease)*(destY);
 
-            critter.addVertex(p[i]);
-            for(int j = i+1; j < clouds; j++){
-                //WAY more processing!!
-                critter.curveTo(p[j],10);
-            }
-            ofDrawCircle(p[i],cloudRadius);
-        }
-        critter.addVertex(p[clouds-1]);
-        ofSetLineWidth(cloudRadius/2);
-        critter.draw();
+//            critter.addVertex(p[i]);
+//            for(int j = i+1; j < clouds; j++){
+//                //WAY more processing!!
+//                critter.curveTo(p[j],10);
+//            }
+//            ofDrawCircle(p[i],cloudRadius);
+//        }
+//        critter.addVertex(p[clouds-1]);
+//        ofSetLineWidth(cloudRadius/2);
+//        critter.draw();
         ofPopMatrix();
     }
     canvas.end();
 }
 
+void ofApp::drawCritter(float duration, float reaction_level){
+    ofFill();
+    //make a polygon with curved edges to make it more 'organic'
+    //so set the first point as an anchor
+    ofPolyline critter;
+    critter.addVertex(p[0]);
+//    float reactionLevel = mappedMotion*reactionMagnifier;
+    float combiMid = calcSizeResponse();
+    for(int i = 0; i < clouds; i++){
+        tx[i] += ((reaction_level)*duration)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
+        ty[i] += ((reaction_level)*duration)*(listen.getMidHigh()+listen.normFromTopOut(listen.getTop())+listen.normFromBassOut(listen.getMidLow()));
+
+        //change from bass to midL for size
+        destX = ofSignedNoise(tx[i])*(reaction_level*(combiMid));
+        destY = ofSignedNoise(ty[i])*(reaction_level*(combiMid));
+        p[i].x = (ease*p[i].x) +(1-ease)*(destX);
+        p[i].y = (ease*p[i].y) +(1-ease)*(destY);
+
+        critter.addVertex(p[i]);
+        for(int j = i+1; j < clouds; j++){
+            //WAY more processing!!
+            critter.curveTo(p[j],10);
+        }
+        ofDrawCircle(p[i],cloudRadius);
+    }
+    critter.addVertex(p[clouds-1]);
+    ofSetLineWidth(cloudRadius/2);
+    critter.draw();
+}
 //--------------------------------------------------------------
 void ofApp::draw(){
     //ofBackground(70,90,70,0);
