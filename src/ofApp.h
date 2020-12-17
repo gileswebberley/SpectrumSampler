@@ -21,7 +21,7 @@ class ofApp : public ofBaseApp{
     ofColor  topReactiveColour, midReactiveColour, undercoat, natural,topColour;
     ofFbo canvas;
     float time0;
-    float destX, destY, yTendency,nX,nY;
+    float yTendency,nX,nY;
     float  tx[clouds], ty[clouds], motionSeeds[reps];
     ofPoint p[clouds];
 public:
@@ -32,7 +32,10 @@ public:
     void seedCritters();
     //duration of the time-step (ie now-then)
     //reaction level [0..1] states how reactive they are
-    void drawCritter(float duration, float reaction_level);
+    //sizing is the result of calcSizeResponse()
+    //x_ and y_reaction affects the speed and sway of the motion recc.[1..4]
+    //if ease is small it will be twitchy, if larger, more saggy [0..1]
+    void drawCritter(float duration, float reaction_level, float sizing, float x_reaction, float y_reaction, float ease_value);
     void fadeCanvas();
     ofColor updateColour();
     float calcSizeResponse();

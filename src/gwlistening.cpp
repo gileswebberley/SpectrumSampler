@@ -225,11 +225,12 @@ void GwListening::clearTempo()
     tempoTolerance = (maxBassOut+maxMidLOut)*0.45;
     //maybe the first 4 bass hits (incase of dbl hits)
     tempoCount = 0;
-    //set the length of tempo in seconds
-    tempo = 0.0;
+    //set the length of tempo in seconds, default set in header file
+    //tempo = 0.0; no need to reset to 0 as it is not checked until changed
     tempoClock = ofGetElapsedTimef();
 }
 
+//working quite reliably and close enough to 'feel' the music fairly quickly
 void GwListening::updateTempo(){
     //listen to the louder between bass and mid-low bands
     float tempoEar{(bass/maxBassOut>midL/maxMidLOut)?bass+maxMidLOut:midL+maxBassOut};

@@ -139,17 +139,18 @@ void ofApp::update(){
             mappedMotion *= -1;
         }
         //x movement caused by top end frequencies ---------------------
-        float toTwitch = (mappedMotion*twitchX)*(listen.normFromTop()+listen.normFromMidHigh())/2;//(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
+        float toTwitch = (mappedMotionAbs*twitchX)*(listen.normFromTop()+listen.normFromMidHigh())/2;//(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
         nX = ((repWidth)*rep)-(repWidth/2);
         if(rep<= repsFloor){
             //work out x-coord and add 'personality' to their individual
             //movement based on the tempo
-            nX -= toTwitch;
+            //making the group squeeze in from top freq. influence - lovely
+            nX += (repsCeil - rep)*toTwitch;
             //fade critters as they get further away from the centre one
             topColour.a = 100+rep*(155/repsCeil);
         }else if(rep > repsCeil){
             //movement based on tempo but inverted from other side of centre
-            nX += toTwitch;
+            nX -= (rep-repsCeil)*toTwitch;
             topColour.a = 255-(fmodf(rep,repsCeil)*(155/(repsCeil)));
         }else if(rep == repsCeil){
             //no sideways movement for the centre critter?
@@ -170,46 +171,50 @@ void ofApp::update(){
         float halfHt =ofGetHeight()/2;
         //new section for tempo movement -----------------------------------------------------
         float tempoYMovement;
-        if(listen.isTempoSampled()){
+//        if(listen.isTempoSampled()){
             tempoYMovement = sin(fmodf(tT,listen.getTempo())/(listen.getTempo()/3.14))*twitchY*mappedMotion;
-        }else{
-            tempoYMovement = sin(fmodf(tT,3.14))*twitchY*mappedMotion;;
-        }
+//        }else{
+//            tempoYMovement = sin(fmodf(tT,3.14))*twitchY*mappedMotion;;
+//        }
         nY = halfHt+tempoYMovement+((0.5*twitchY)*ofSignedNoise(tT))+(((halfHt)*mappedMotionAbs)*yTendency);
         //now we've worked out the position for the critter simply translate/rotate then draw ----------------
         ofTranslate(nX,nY);
         ofRotateDeg(360/rep);
         ofSetColor(topColour);
+        //info to pass to the critter to draw itself
         float reactionLevel = mappedMotion*reactionMagnifier;
-        drawCritter(dt,reactionLevel);
+        float combiMid = calcSizeResponse();
+        //these affect the speed and 'sway' of the critters
+        float xr = 1+listen.normFromMidHigh()+listen.normFromTop();
+        float yr = 1+listen.normFromMidLow()+listen.normFromBass();
+        //break out the critter drawing, first step to making a seperate class
+        drawCritter(dt,reactionLevel,combiMid,xr,yr,ease);
         ofPopMatrix();
     }
     canvas.end();
 }
 
-void ofApp::drawCritter(float duration, float reaction_level){
+void ofApp::drawCritter(float duration, float reaction_level, float sizing, float x_reaction, float y_reaction, float ease_value){
     ofFill();
     //make a polygon with curved edges to make it more 'organic'
     //so set the first point as an anchor
     ofPolyline critter;
     critter.addVertex(p[0]);
-//    float reactionLevel = mappedMotion*reactionMagnifier;
-    float combiMid = calcSizeResponse();
     for(int i = 0; i < clouds; i++){
         //how much is each point in the critter moving in this frame
         //the listen state is used to affect the movement speed and
         //kinda makes it sway with the swells in the music
-        tx[i] += ((reaction_level*(1+listen.normFromMidHigh()+listen.normFromTop()))*duration);
-        ty[i] += ((reaction_level*(1+listen.normFromMidLow()+listen.normFromBass()))*duration);
-
+        tx[i] += ((reaction_level*x_reaction)*duration);
+        ty[i] += ((reaction_level*y_reaction)*duration);
         //signed noise so they don't just expand endlessly but instead throb
         //two dimensional noise adds more fluidity to the movement
-        destX = ofSignedNoise(tx[i],ty[i])*combiMid;//*(reaction_level*(combiMid));
-        destY = ofSignedNoise(ty[i],tx[i])*combiMid;//*(reaction_level*(combiMid));
+        //making them local to cut ties with the main app
+        float destX = ofSignedNoise(tx[i],ty[i])*sizing;
+        float destY = ofSignedNoise(ty[i],tx[i])*sizing;
         //then make the actual points head towards their target position
         //if ease is small it will be twitchy, if larger, more saggy [0..1]
-        p[i].x = (ease*p[i].x) +(1-ease)*(destX);
-        p[i].y = (ease*p[i].y) +(1-ease)*(destY);
+        p[i].x = (ease_value*p[i].x) +(1-ease_value)*(destX);
+        p[i].y = (ease_value*p[i].y) +(1-ease_value)*(destY);
 
         critter.addVertex(p[i]);
         for(int j = i+1; j < clouds; j++){

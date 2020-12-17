@@ -13,7 +13,7 @@ class GwListening
     float specBarCol, colCorrect;
     ofColor specBg{46}, posBand{156}, negBand{128}, topColour;
     float minTempoTime{2}, tempoBeatsInBar{4};
-    float tempoCount{0}, tempo{1.0}, tempoTolerance, tempoClock{0};
+    float tempoCount{0}, tempo{8.0}, tempoTolerance, tempoClock{0};
     bool tempoSampling, tempoUp, tempoCaught;
     //these are mapped rms from max-min-in to max-min-out values
     float bass,midL, mid, top;
