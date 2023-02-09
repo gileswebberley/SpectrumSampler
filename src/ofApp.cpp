@@ -63,6 +63,8 @@ void ofApp::seedCritters(){
     }
     //I want the y movement to be affected by the music more
     yTendency = 0;
+    //is it just good behaviour to clear up like this?
+    tmpPnt = nullptr;
 }
 
 
@@ -124,6 +126,7 @@ void ofApp::update(){
     //drawing onto an ofFbo
     canvas.begin();
     fadeCanvas();
+    //if you want to see the fft spectrum itself at the bottom of the screen...
     //listen.drawSpectrum();
     float repWidth = ofGetWidth()/reps;
     for(int rep = 1; rep <= reps; rep++){
@@ -132,7 +135,7 @@ void ofApp::update(){
         float tT = ofGetElapsedTimef();
         bool motionDir = (motionSeeds[rep-1]<0)?false:true;
         //absolute value for bass, don't want them floating up on the drop!?
-        //map to get rid of lazy critters
+        //map to get rid of lazy critters - need to centralise these float literals
         float mappedMotionAbs = ofMap(abs(motionSeeds[rep-1]),0,1,0.7,1);
         float mappedMotion = mappedMotionAbs;
         if(!motionDir){
