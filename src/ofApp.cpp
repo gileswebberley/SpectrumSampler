@@ -76,7 +76,7 @@ ofColor ofApp::updateColour(){
     //work out the colour based on top and mid ranges (red:mid blue:top)
     //just builds up to max colour then doesn't go back down with lerp()
     //normalize is the same as map to [0..1]
-    float cShiftr = ((listen.normFromMidLow()*2)+listen.normFromBass())/3;
+    float cShiftr = ((listen.normFromMidLow())+listen.normFromBass())/3;//it was going too red so midLow * 1
     float cShiftb = (listen.normFromTop()/2)+(listen.normFromMidHigh()/2);
     ofColor tmpColour(midReactiveColour*cShiftr);
     tmpColour += ofColor(topReactiveColour*cShiftb);
@@ -100,7 +100,7 @@ float ofApp::calcSizeResponse(){
     float bassMid = listen.normFromBass()*bassOutPair.second;
     float topMid = listen.normFromTop()*bassOutPair.second;
     cleanMid -= topMid;//min(cleanMid,topMid);
-    cleanMid += bassMid;
+    cleanMid += bassMid/2;
     cleanMid += bassOutPair.first;
     return cleanMid;
 }

@@ -12,17 +12,16 @@ Project{
         name: { return FileInfo.baseName(sourceDirectory) }
 
         files: [
+            'src/gwlistening.cpp',
+            'src/gwlistening.h',
+            'src/jukebox.cpp',
+            'src/jukebox.h',
             'src/main.cpp',
             'src/ofApp.cpp',
             'src/ofApp.h',
-            'src/jukebox.h',
-            'src/jukebox.cpp',
-            'src/gwlistening.h',
-            'src/gwlistening.cpp'
         ]
 
         of.addons: [
-
         ]
 
         // additional flags for the project. the of module sets some
