@@ -94,11 +94,13 @@ void ofApp::fadeCanvas(){
 
 float ofApp::calcSizeResponse(){
     std::pair<float,float> bassOutPair = listen.getOutPair('b');
+    std::pair<float, float> topOutPair = listen.getOutPair('t');
+    std::pair<float, float> midOutPair = listen.getOutPair('m');
     //smaller than mid if toppy, bigger if bassy
     float cleanMid = listen.normFromMidLow()*(bassOutPair.second);
-    cleanMid += listen.normFromMidHigh()*(bassOutPair.second);
-    float bassMid = listen.normFromBass()*bassOutPair.second;
-    float topMid = listen.normFromTop()*bassOutPair.second;
+    cleanMid += listen.normFromMidHigh()*(midOutPair.second);
+    float bassMid = listen.normFromBass()*bassOutPair.first;
+    float topMid = listen.normFromTop()*topOutPair.second;
     cleanMid -= topMid;//min(cleanMid,topMid);
     cleanMid += bassMid/2;
     cleanMid += bassOutPair.first;

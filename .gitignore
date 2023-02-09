@@ -1,2 +1,4 @@
 bin/data/*.wav
 bin/SpectrumSampler_debug
+obj/
+.vs/
