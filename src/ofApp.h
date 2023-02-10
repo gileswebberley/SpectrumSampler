@@ -18,7 +18,14 @@ class ofApp : public ofBaseApp{
     int repsFloor = floor(reps/2.0);
     int repsCeil = floor((reps+1)/2);
     //undercoat is the bg colour and natural is the critter base colour
-    ofColor  topReactiveColour, midReactiveColour, undercoat, natural,topColour;
+    //colour tendancy by mid-high and top
+    ofColor  topReactiveColour = ofColor(99, 255, 203).invert();
+    //colour tendancy by bass and mid-low
+    ofColor midReactiveColour = ofColor(204, 48, 0).invert();
+    //undercoat.a controls the fade rate of trails
+    ofColor undercoat = ofColor(70, 90, 70, 50);
+    ofColor natural = ofColor(255);
+    ofColor topColour;
     ofFbo canvas;
     float time0;
     float yTendency,nX,nY;
@@ -29,6 +36,7 @@ public:
     void setup();
     void update();
     void draw();
+    void resetAndStartRandomTrack();
     void seedCritters();
     //duration of the time-step (ie now-then)
     //reaction level [0..1] states how reactive they are

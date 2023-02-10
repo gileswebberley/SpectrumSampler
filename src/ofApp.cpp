@@ -22,14 +22,6 @@ void ofApp::setup(){
     time0 = 0;
     //give each critter slightly randomised behaviour
     seedCritters();
-    //colour tendancy by bass and mid-low
-    midReactiveColour = ofColor(204,48,0).invert();///2;
-    //colour tendancy by mid-high and top
-    topReactiveColour = ofColor(99,255,203).invert();///2;
-    //undercoat.a controls the fade rate of trails
-    undercoat = ofColor(70,90,70,50);
-    //basic colour startig point for the critters
-    natural = ofColor(255);
     //get the listener ready to start afresh
     listen.clearTraining();
     //implementing Jukebox...
@@ -107,6 +99,17 @@ float ofApp::calcSizeResponse(){
     return cleanMid;
 }
 
+void ofApp::resetAndStartRandomTrack()
+{
+    //pick another song
+    juke.playFile(juke.selectRandom());
+    cout << "I've finished the song!!\n";
+    //run the randomiser of the critters behaviour etc
+    seedCritters();
+    //clear up what the listener has learnt from the last song
+    listen.clearTraining();
+    listen.clearTempo();
+}
 //--------------------------------------------------------------
 void ofApp::update(){
     float t = ofGetElapsedTimef();
@@ -114,11 +117,8 @@ void ofApp::update(){
     dt = ofClamp(dt,0.0,0.1);
     time0 = t;
     if(!juke.simplePlaying()){
-        juke.playFile(juke.selectRandom());
-        cout<<"I've finished the song!!\n";
-        seedCritters();
-        listen.clearTraining();
-        listen.clearTempo();
+        //if we've just started or a song has just finished
+        resetAndStartRandomTrack();
     }
     //ofSoundUpdate();
     listen.updateSpectrum();
@@ -128,8 +128,6 @@ void ofApp::update(){
     //drawing onto an ofFbo
     canvas.begin();
     fadeCanvas();
-    //if you want to see the fft spectrum itself at the bottom of the screen...
-    //listen.drawSpectrum();
     float repWidth = ofGetWidth()/reps;
     for(int rep = 1; rep <= reps; rep++){
         //for each critter in the group.........
@@ -196,6 +194,8 @@ void ofApp::update(){
         drawCritter(dt,reactionLevel,combiMid,xr,yr,ease);
         ofPopMatrix();
     }
+    //if you want to see the fft spectrum itself at the bottom of the screen...
+    //-- this is not working when I've come back to it on Windows - listen.drawSpectrum();
     canvas.end();
 }
 

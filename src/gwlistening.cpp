@@ -14,26 +14,12 @@ GwListening::GwListening()
     levelisedSpectrum.assign(bands,0.f);
 }
 
-void GwListening::setToDefault()//set values as used in SpectrumSampler
-{
-    bands = 128; bandBass = 0; bassSampleSize = 2;
-    bandMidLow = bandBass+bassSampleSize;
-    midLowSampleSize = 5;
-    bandMid = bandMidLow+midLowSampleSize+1;
-    midSampleSize =((bands-1)-bandMid)/2;
-    bandTop = bandMid+midSampleSize; topSampleSize = (bands-1)-bandTop;
-    minTempoTime = 2;
-    spectrum.reserve(bands);
-    spectrum.assign(bands,0.f);
-    levelisedSpectrum.assign(bands,0.f);
-    clearTraining();
-}
 
 //should pick up the sound from any ofSoundPlayers that are running
 void GwListening::updateSpectrum(){
     //pointer passed by our player to real spectrum
     //do not release from memory!!
-    float* spectrumIn = ofSoundGetSpectrum(bands);
+    spectrumIn = ofSoundGetSpectrum(bands);
     //make the values decrease slowly until bumped back up
     for(int i = 0; i<bands; i++){
         spectrum.at(i) *= peakDropRate;
@@ -134,7 +120,7 @@ const std::vector<float>* GwListening::getLevelisedSpectrum()
 
 //used by updateSpectrum - make private I think..
 void GwListening::updateRMS(){
-    //produce rms type figures for each band sample
+    //produce rms type figures for each band sample by squaring each sample bucket, getting a mean average of them, then finding it's square root
     bm = 0;
     for(int i=0; i<bassSampleSize; i++){
         bm += pow(spectrum[bandBass+i],2.0);
@@ -270,7 +256,7 @@ void GwListening::updateTempo(){
     }
 }
 
-
+//this isn't working on Windows??
 void GwListening::drawSpectrum(){
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     //draw the spectrum chart
@@ -295,5 +281,6 @@ void GwListening::drawSpectrum(){
          //ofNoFill();
          ++i;
      }
+     //delete sp;
      //cout<<"\nLISTENING draw loop end\n";
 }

@@ -4,14 +4,28 @@
 
 class GwListening
 {
-    //not sure so I'm not going to make them constants
+    //bands - number of sample buckets
+    //bandBass - the lowest bucket to 'listen to' (if you find the lowest buckets are twisting the listening then use this)
+    //bassSampleSize - number of buckets that count toward the bass 'listening' [bandBass..bassSampleSize+bandBass]
     int bands{256},bandBass{0},bassSampleSize{2};
-    int bandMidLow{bandBass+bassSampleSize},midLowSampleSize{5};
+    //bandMidLow - index of the start bucket of mid-low, which is one above the top of the bass range, listening range [bandMidLow..midLowSampleSize+bandMidLow]
+    int bandMidLow{bandBass+bassSampleSize+1},midLowSampleSize{5};
+    //bandMid - index of start bucket of mid, one above the end of mid-low, listening range
+    //midSampleSize is half of what's left in terms of buckets
     int bandMid{bandMidLow+midLowSampleSize+1},midSampleSize{((bands-1)-bandMid)/2};
+    //bandTop - index of start bucket of top, one above the end of mid, listening range
+    //topSampleSize is all of the buckets left
     int bandTop{bandMid+midSampleSize},topSampleSize{(bands-1)-bandTop};
+    //for the spectrum graph visualisation
     int specBarX, specBarY, specBarH, specBarW;
+    //for fitting the columns (that refer to buckets of the sample) according to screen width
     float specBarCol, colCorrect;
     ofColor specBg{46}, posBand{156}, negBand{128}, topColour;
+    //literally the rate at which the columns fade back down from peaks
+    float peakDropRate{ 0.985 };
+
+    //minTempoTime - to restrict catching on to a tempo too early
+    //tempoBeatsInBar - to set the time signature that it's expecting (4/4)
     float minTempoTime{2}, tempoBeatsInBar{4};
     float tempoCount{0}, tempo{8.0}, tempoTolerance, tempoClock{0};
     bool tempoSampling, tempoUp, tempoCaught;
@@ -19,20 +33,27 @@ class GwListening
     float bass,midL, mid, top;
     //these are the raw rms figures for each band-group
     float bm,mlm,mm,tm;
-    float peakDropRate{0.985};
+    //these are for mapping, because readings of top frequencies from fft are such a huge range that they average out as tiny readings
+    //max values are updated if the value goes above what's expected 
+    //the 'In' values are what we are getting from the raw fft spectrum sampler
     float maxBassIn, minBassIn, maxMidIn, minMidIn;
     float minTopIn, maxTopIn, minMidLIn, maxMidLIn;
-    //these are the scaling factors that are mapped to
+    //these are the scaling factors that the 'In' values are mapped to - ie
     float maxBassOut{400},minBassOut{50},maxMidLOut{2},minMidLOut{0.1};
     float maxMidOut{1},minMidOut{0.1}, maxTopOut{100}, minTopOut{0.5};
+    //this is the pointer returned by ofSoundGetSpectrum() - in the guide it says not to delete this pointer (I guess it is taken care of in ofSound?)
+    float* spectrumIn;
+    //this is the spectrum that has the peak fading applied
     std::vector<float> spectrum;
+    //an attempt to make a more natural representation of the fft sample
     std::vector<float> levelisedSpectrum;
+
     void updateRMS();
 
 public:
     GwListening();
     //set up the default values as above
-    void setToDefault();
+    //void setToDefault(); this was just making the same stuff be set in more than one place - not good
     void setupSpectrumGraph(int x, int y, int w, int h);
     const std::vector<float>* getLevelisedSpectrum();
     void setBassOut(float min, float max){minBassOut = abs(min); maxBassOut = abs(max);}
