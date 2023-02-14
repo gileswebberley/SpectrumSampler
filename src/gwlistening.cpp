@@ -281,6 +281,7 @@ void GwListening::drawSpectrum(){
          //ofNoFill();
          ++i;
      }
+     ofNoFill();
      //delete sp;
      //cout<<"\nLISTENING draw loop end\n";
 }

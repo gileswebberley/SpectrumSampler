@@ -7,9 +7,9 @@ class GwListening
     //bands - number of sample buckets
     //bandBass - the lowest bucket to 'listen to' (if you find the lowest buckets are twisting the listening then use this)
     //bassSampleSize - number of buckets that count toward the bass 'listening' [bandBass..bassSampleSize+bandBass]
-    int bands{256},bandBass{0},bassSampleSize{2};
+    int bands{256},bandBass{0},bassSampleSize{3};
     //bandMidLow - index of the start bucket of mid-low, which is one above the top of the bass range, listening range [bandMidLow..midLowSampleSize+bandMidLow]
-    int bandMidLow{bandBass+bassSampleSize+1},midLowSampleSize{5};
+    int bandMidLow{bandBass+bassSampleSize+1},midLowSampleSize{15};
     //bandMid - index of start bucket of mid, one above the end of mid-low, listening range
     //midSampleSize is half of what's left in terms of buckets
     int bandMid{bandMidLow+midLowSampleSize+1},midSampleSize{((bands-1)-bandMid)/2};
@@ -35,12 +35,12 @@ class GwListening
     float bm,mlm,mm,tm;
     //these are for mapping, because readings of top frequencies from fft are such a huge range that they average out as tiny readings
     //max values are updated if the value goes above what's expected 
-    //the 'In' values are what we are getting from the raw fft spectrum sampler
+    //the 'In' values are what we are getting from the raw fft spectrum sampler - see clearTraining() for values
     float maxBassIn, minBassIn, maxMidIn, minMidIn;
     float minTopIn, maxTopIn, minMidLIn, maxMidLIn;
-    //these are the scaling factors that the 'In' values are mapped to - ie
-    float maxBassOut{400},minBassOut{50},maxMidLOut{2},minMidLOut{0.1};
-    float maxMidOut{1},minMidOut{0.1}, maxTopOut{100}, minTopOut{0.5};
+    //these are the scaling factors that the 'In' values are mapped to
+    float maxBassOut{500},minBassOut{10},maxMidLOut{300},minMidLOut{10};
+    float maxMidOut{300},minMidOut{60}, maxTopOut{200}, minTopOut{10};
     //this is the pointer returned by ofSoundGetSpectrum() - in the guide it says not to delete this pointer (I guess it is taken care of in ofSound?)
     float* spectrumIn;
     //this is the spectrum that has the peak fading applied
@@ -67,7 +67,9 @@ public:
     float getTempo()const{return tempo;}
     float getPeakDrop()const{return peakDropRate;}
     //frange [b,l,m,t]
+    //returns the minOut and maxOut for frange
     std::pair<float,float> getOutPair(char frange);
+    //returns the minIn and maxIn for frange
     std::pair<float,float> getInPair(char frange);
     float normFromBass(){return ofNormalize(bm,minBassIn,maxBassIn);}
     float normFromMidLow(){return ofNormalize(mlm,minMidLIn,maxMidLIn);}

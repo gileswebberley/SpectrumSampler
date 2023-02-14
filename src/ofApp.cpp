@@ -49,8 +49,8 @@ void ofApp::seedCritters(){
     for(int i = 0; i < reps; i++){
         int seed = ofGetElapsedTimeMicros()+i*(long)tmpPnt;
         ofSeedRandom(seed);
-        //equiv to ofRandom(-1.0,1.0);
-        motionSeeds[i] = ofRandomf();
+        //ofRandomf returns [-1..1] so this gives [-1..-0.7] or [0.7..1]
+        motionSeeds[i] = ofRandom(0.7,1.0)*ofRandomf();
         cout<<"motion seed"<<i<<": "<<motionSeeds[i]<<"\n";
     }
     //I want the y movement to be affected by the music more
@@ -86,16 +86,18 @@ void ofApp::fadeCanvas(){
 
 float ofApp::calcSizeResponse(){
     std::pair<float,float> bassOutPair = listen.getOutPair('b');
+    std::pair<float, float> midLOutPair = listen.getOutPair('l');
     std::pair<float, float> topOutPair = listen.getOutPair('t');
     std::pair<float, float> midOutPair = listen.getOutPair('m');
     //smaller than mid if toppy, bigger if bassy
-    float cleanMid = listen.normFromMidLow()*(bassOutPair.second);
-    cleanMid += listen.normFromMidHigh()*(midOutPair.second);
-    float bassMid = listen.normFromBass()*bassOutPair.first;
-    float topMid = listen.normFromTop()*topOutPair.second;
+    //essentially getting the scale of each frequency group then multiply by maxOut
+    float cleanMid = listen.getMidLow();//listen.normFromMidLow()*(midLOutPair.second);
+    cleanMid += listen.getMidHigh();//listen.normFromMidHigh()*(midOutPair.second);
+    float bassMid = listen.getBass();//listen.normFromBass()*bassOutPair.first;
+    float topMid = listen.getTop();//listen.normFromTop()*topOutPair.second;
     cleanMid -= topMid;//min(cleanMid,topMid);
-    cleanMid += bassMid/2;
-    cleanMid += bassOutPair.first;
+    cleanMid += bassMid;
+    //cleanMid += bassOutPair.first;
     return cleanMid;
 }
 
@@ -133,16 +135,12 @@ void ofApp::update(){
         //for each critter in the group.........
         ofPushMatrix();
         float tT = ofGetElapsedTimef();
-        bool motionDir = (motionSeeds[rep-1]<0)?false:true;
         //absolute value for bass, don't want them floating up on the drop!?
-        //map to get rid of lazy critters - need to centralise these float literals
-        float mappedMotionAbs = ofMap(abs(motionSeeds[rep-1]),0,1,0.7,1);
-        float mappedMotion = mappedMotionAbs;
-        if(!motionDir){
-            mappedMotion *= -1;
-        }
+        //map to get rid of lazy critters - need to centralise these magic floats - now in the SeedCritters()
+        float mappedMotion = motionSeeds[rep-1];
+        float mappedMotionAbs = abs(mappedMotion);
         //x movement caused by top end frequencies ---------------------
-        float toTwitch = (mappedMotionAbs*twitchX)*(listen.normFromTop()+listen.normFromMidHigh())/2;//(mappedMotion*fmodf(ofSignedNoise(tT),listen.getTempo()/2));
+        float toTwitch = (mappedMotionAbs*twitchX)*(listen.normFromTop()+listen.normFromMidHigh() / 2);
         nX = ((repWidth)*rep)-(repWidth/2);
         if(rep<= repsFloor){
             //work out x-coord and add 'personality' to their individual
@@ -163,23 +161,24 @@ void ofApp::update(){
         //y-movement based on a plethora of frequencies and the tempo -------------------------
         //make the group head down with bass hit and up with top snaps
         //great, works pretty nicely first time
-        yTendency = yTendency*listen.getPeakDrop();
+        //yTendency = yTendency*listen.getPeakDrop();
         //so ease will be stickier if bigger
         float bassDrag =(ease*yTendency);
         bassDrag += (1-ease)*listen.normFromBass();
-        float topLift = ((1-ease)*yTendency)+(ease*listen.normFromTop());
-        float bDrag = (bassDrag*(listen.normFromBass()))-topLift;
-        yTendency = max(yTendency,bDrag);
+        float topLift = ease * yTendency;
+        topLift *= (1 - ease) * (listen.normFromTop()+listen.normFromMidHigh());
+        float yDrag = bassDrag - topLift;//(bassDrag * (listen.normFromBass())) - topLift;
+        yTendency = max(yTendency,yDrag);
 
-        float halfHt =ofGetHeight()/2;
+        float halfHt = ofGetHeight()/2;
         //new section for tempo movement -----------------------------------------------------
         float tempoYMovement;
 //        if(listen.isTempoSampled()){
-            tempoYMovement = sin(fmodf(tT,listen.getTempo())/(listen.getTempo()/3.14))*twitchY*mappedMotion;
+            tempoYMovement = sin(fmodf(tT,listen.getTempo())/(listen.getTempo()/3.14))*twitchY*mappedMotionAbs;
 //        }else{
 //            tempoYMovement = sin(fmodf(tT,3.14))*twitchY*mappedMotion;;
 //        }
-        nY = halfHt+tempoYMovement+((0.5*twitchY)*ofSignedNoise(tT))+(((halfHt)*mappedMotionAbs)*yTendency);
+        nY = halfHt+tempoYMovement+((0.5*twitchY)*ofSignedNoise(tT))+(((halfHt)*mappedMotion)*yTendency);
         //now we've worked out the position for the critter simply translate/rotate then draw ----------------
         ofTranslate(nX,nY);
         ofRotateDeg(360/rep);
@@ -195,7 +194,8 @@ void ofApp::update(){
         ofPopMatrix();
     }
     //if you want to see the fft spectrum itself at the bottom of the screen...
-    //-- this is not working when I've come back to it on Windows - listen.drawSpectrum();
+    //-- this is not working when I've come back to it on Windows - 
+    //listen.drawSpectrum();
     canvas.end();
 }
 
